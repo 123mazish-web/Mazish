@@ -1,0 +1,114 @@
+export const DEFAULT_PRODUCTS = [
+  {
+    id: "sunglasses-1",
+    name: "MAZISH Classic Aviator",
+    description: "Handcrafted lightweight metal frame. Features scratch-resistant polarized lenses that provide 100% UV protection. Designed for the ultimate luxury statement.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass1.png"],
+    category: "Sunglasses",
+    stock: 25,
+    is_featured: true
+  },
+  {
+    id: "sunglasses-2",
+    name: "MAZISH Onyx Shadow",
+    description: "Deep obsidian black acetate frame with gradient dark lenses. A classic, timeless silhouette that exudes authority and mystery.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass2.png"],
+    category: "Sunglasses",
+    stock: 18,
+    is_featured: true
+  },
+  {
+    id: "sunglasses-3",
+    name: "MAZISH Lumina Rose",
+    description: "Translucent rose gold frame paired with soft-tinted mirrored lenses. Highly durable double-bridge construction offering unmatched comfort.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass3.png"],
+    category: "Sunglasses",
+    stock: 15,
+    is_featured: true
+  },
+  {
+    id: "sunglasses-4",
+    name: "MAZISH Mirage Silver",
+    description: "Silver hexagonal frame with blue-gradient lenses. Extremely lightweight construction using surgical-grade stainless steel.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass4.png"],
+    category: "Sunglasses",
+    stock: 20,
+    is_featured: true
+  },
+  {
+    id: "sunglasses-5",
+    name: "MAZISH Elysian Amber",
+    description: "Tortoiseshell patterned acetate frame with amber tinted lenses. A warm, vintage-inspired design that complements any modern luxury wardrobe.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass5.png"],
+    category: "Sunglasses",
+    stock: 12,
+    is_featured: false
+  },
+  {
+    id: "sunglasses-6",
+    name: "MAZISH Stealth Sport",
+    description: "Sleek aerodynamic wrap-around frames built for active luxury. Polarized high-contrast lenses for maximum clarity.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass6.png"],
+    category: "Sunglasses",
+    stock: 30,
+    is_featured: false
+  },
+  {
+    id: "sunglasses-7",
+    name: "MAZISH Retro Browline",
+    description: "Clubmaster-style frames combining premium tortoiseshell acetate with gold metal accents. Exudes academic luxury.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass7.png"],
+    category: "Sunglasses",
+    stock: 14,
+    is_featured: false
+  },
+  {
+    id: "sunglasses-8",
+    name: "MAZISH Cyber Edge",
+    description: "Rimless futuristic shields with iridescent violet-to-blue gradient lenses. Express your unique cyberpunk luxury look.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/Sunglass8.png"],
+    category: "Sunglasses",
+    stock: 10,
+    is_featured: false
+  },
+  {
+    id: "fifa-brazil",
+    name: "MAZISH Handcrafted Brazil Edition",
+    description: "Special FIFA Edition. Show your pride for the Seleção with this handcrafted luxury piece featuring signature green and gold acetate details and polarized golden-yellow gradient lenses.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/BrazilGlass.jpg"],
+    category: "FIFA Special Edition",
+    stock: 50,
+    is_featured: true,
+    is_preorder: true
+  },
+  {
+    id: "fifa-argentina",
+    name: "MAZISH Handcrafted Argentina Edition",
+    description: "Special FIFA Edition. Celebrate the Albiceleste with this handcrafted luxury frame featuring pristine sky-blue and white accents, fitted with high-contrast polarized lenses.",
+    price: 1400,
+    discount_price: 950,
+    images: ["/images/ArgentinaGlass.jpg"],
+    category: "FIFA Special Edition",
+    stock: 50,
+    is_featured: true,
+    is_preorder: true
+  }
+]
