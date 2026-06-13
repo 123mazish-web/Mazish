@@ -18,6 +18,13 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+const DEFAULT_CATEGORIES = [
+  { name: "Sunglasses" },
+  { name: "Apparel" },
+  { name: "Accessories" },
+  { name: "FIFA Special Edition" }
+]
+
 const DEFAULT_PRODUCTS = [
   {
     name: "MAZISH Classic Aviator",
@@ -26,6 +33,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass1.png"],
     category: "Sunglasses",
+    gender: "Men",
     stock: 25,
     is_featured: true
   },
@@ -36,6 +44,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass2.png"],
     category: "Sunglasses",
+    gender: "Unisex",
     stock: 18,
     is_featured: true
   },
@@ -46,6 +55,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass3.png"],
     category: "Sunglasses",
+    gender: "Women",
     stock: 15,
     is_featured: true
   },
@@ -56,6 +66,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass4.png"],
     category: "Sunglasses",
+    gender: "Unisex",
     stock: 20,
     is_featured: true
   },
@@ -66,6 +77,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass5.png"],
     category: "Sunglasses",
+    gender: "Unisex",
     stock: 12,
     is_featured: false
   },
@@ -76,6 +88,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass6.png"],
     category: "Sunglasses",
+    gender: "Men",
     stock: 30,
     is_featured: false
   },
@@ -86,6 +99,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass7.png"],
     category: "Sunglasses",
+    gender: "Men",
     stock: 14,
     is_featured: false
   },
@@ -96,6 +110,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass8.png"],
     category: "Sunglasses",
+    gender: "Women",
     stock: 10,
     is_featured: false
   },
@@ -106,6 +121,7 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/BrazilGlass.jpg"],
     category: "FIFA Special Edition",
+    gender: "Unisex",
     stock: 50,
     is_featured: true
   },
@@ -116,24 +132,32 @@ const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/ArgentinaGlass.jpg"],
     category: "FIFA Special Edition",
+    gender: "Unisex",
     stock: 50,
     is_featured: true
   }
 ]
 
 async function seed() {
-  console.log("Cleaning existing products...")
-  // We can delete all items using delete().gt('price', 0)
-  const { error: deleteError } = await supabase
-    .from('products')
-    .delete()
-    .gt('price', 0)
+  console.log("Cleaning products...")
+  await supabase.from('products').delete().gt('price', 0)
 
-  if (deleteError) {
-    console.warn("Could not delete existing products:", deleteError.message)
+  console.log("Cleaning categories...")
+  await supabase.from('categories').delete().neq('name', '')
+
+  console.log("Seeding categories...")
+  const { data: catData, error: catError } = await supabase
+    .from('categories')
+    .insert(DEFAULT_CATEGORIES)
+    .select()
+
+  if (catError) {
+    console.error("Error seeding categories:", catError.message)
+  } else {
+    console.log(`Seeded ${catData.length} categories.`)
   }
 
-  console.log("Seeding Supabase products...")
+  console.log("Seeding products...")
   const { data, error } = await supabase
     .from('products')
     .insert(DEFAULT_PRODUCTS)

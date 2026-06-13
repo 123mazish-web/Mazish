@@ -30,7 +30,7 @@ export default function Header() {
             <Link href="/" className="hover:text-amber-500 transition-colors duration-200">
               Home
             </Link>
-            <Link href="/#shop" className="hover:text-amber-500 transition-colors duration-200">
+            <Link href="/shop" className="hover:text-amber-500 transition-colors duration-200">
               Shop
             </Link>
             <Link href="/about" className="hover:text-amber-500 transition-colors duration-200">
@@ -83,7 +83,7 @@ export default function Header() {
               Home
             </Link>
             <Link
-              href="/#shop"
+              href="/shop"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
             >

@@ -7,6 +7,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass1.png"],
     category: "Sunglasses",
+    gender: "Men",
     stock: 25,
     is_featured: true
   },
@@ -18,6 +19,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass2.png"],
     category: "Sunglasses",
+    gender: "Unisex",
     stock: 18,
     is_featured: true
   },
@@ -29,6 +31,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass3.png"],
     category: "Sunglasses",
+    gender: "Women",
     stock: 15,
     is_featured: true
   },
@@ -40,6 +43,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass4.png"],
     category: "Sunglasses",
+    gender: "Unisex",
     stock: 20,
     is_featured: true
   },
@@ -51,6 +55,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass5.png"],
     category: "Sunglasses",
+    gender: "Unisex",
     stock: 12,
     is_featured: false
   },
@@ -62,6 +67,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass6.png"],
     category: "Sunglasses",
+    gender: "Men",
     stock: 30,
     is_featured: false
   },
@@ -73,6 +79,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass7.png"],
     category: "Sunglasses",
+    gender: "Men",
     stock: 14,
     is_featured: false
   },
@@ -84,6 +91,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/Sunglass8.png"],
     category: "Sunglasses",
+    gender: "Women",
     stock: 10,
     is_featured: false
   },
@@ -95,6 +103,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/BrazilGlass.jpg"],
     category: "FIFA Special Edition",
+    gender: "Unisex",
     stock: 50,
     is_featured: true,
     is_preorder: true
@@ -107,6 +116,7 @@ export const DEFAULT_PRODUCTS = [
     discount_price: 950,
     images: ["/images/ArgentinaGlass.jpg"],
     category: "FIFA Special Edition",
+    gender: "Unisex",
     stock: 50,
     is_featured: true,
     is_preorder: true

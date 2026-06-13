@@ -26,7 +26,7 @@ export default function Footer() {
                 <Link href="/" className="hover:text-amber-500 transition-colors">Home</Link>
               </li>
               <li>
-                <Link href="/#shop" className="hover:text-amber-500 transition-colors">Shop Sunglasses</Link>
+                <Link href="/shop" className="hover:text-amber-500 transition-colors">Shop Sunglasses</Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-amber-500 transition-colors">Our Story</Link>
@@ -42,17 +42,12 @@ export default function Footer() {
             <h4 className="text-zinc-300 text-xs font-semibold uppercase tracking-widest">Connect</h4>
             <ul className="space-y-2.5 text-sm font-light text-zinc-500">
               <li>
-                <a href="https://wa.me/+8801700000000" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">
-                  WhatsApp Support
-                </a>
-              </li>
-              <li>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">
+                <a href="https://www.facebook.com/profile.php?id=61590005602732" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">
                   Facebook Page
                 </a>
               </li>
               <li>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">
+                <a href="https://www.instagram.com/123mazish/" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">
                   Instagram
                 </a>
               </li>

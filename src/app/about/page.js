@@ -76,28 +76,28 @@ export default function AboutPage() {
 
               <div className="space-y-4 text-sm font-light">
                 <a
-                  href="https://wa.me/+8801700000000"
+                  href="https://www.instagram.com/123mazish/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-amber-500/30 transition-colors"
                 >
                   <MessageSquare size={20} className="text-amber-500" />
                   <div>
-                    <h4 className="font-semibold text-white uppercase text-[10px] tracking-wider">WhatsApp Concierge</h4>
-                    <p className="text-zinc-400 text-xs mt-0.5">Click to chat with our agents (+8801700000000)</p>
+                    <h4 className="font-semibold text-white uppercase text-[10px] tracking-wider">Instagram Connect</h4>
+                    <p className="text-zinc-400 text-xs mt-0.5">Follow and direct message us on Instagram</p>
                   </div>
                 </a>
 
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/profile.php?id=61590005602732"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-amber-500/30 transition-colors"
                 >
-                  <Phone size={20} className="text-amber-500" />
+                  <MessageSquare size={20} className="text-amber-500" />
                   <div>
                     <h4 className="font-semibold text-white uppercase text-[10px] tracking-wider">Facebook Customer Care</h4>
-                    <p className="text-zinc-400 text-xs mt-0.5">Follow and message us for prompt updates</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">Follow and message our Facebook page</p>
                   </div>
                 </a>
               </div>

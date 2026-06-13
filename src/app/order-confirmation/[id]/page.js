@@ -169,21 +169,13 @@ export default function OrderConfirmationPage({ params, searchParams }) {
         </div>
 
         {/* Action Links */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <div className="flex items-center justify-center pt-4">
           <Link
             href="/"
-            className="w-full sm:w-auto text-center bg-zinc-900 border border-zinc-850 hover:bg-white hover:text-zinc-950 text-white font-bold uppercase tracking-widest text-xs px-8 py-3.5 rounded-full transition-all duration-300"
+            className="w-full sm:w-auto text-center bg-zinc-900 border border-zinc-850 hover:bg-white hover:text-zinc-950 text-white font-bold uppercase tracking-widest text-xs px-10 py-4 rounded-full transition-all duration-300"
           >
             Continue Shopping
           </Link>
-          <a
-            href="https://wa.me/+8801700000000"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto text-center bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold uppercase tracking-widest text-xs px-8 py-3.5 rounded-full transition-all duration-300"
-          >
-            WhatsApp Support
-          </a>
         </div>
       </div>
     </div>

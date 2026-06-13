@@ -3,9 +3,10 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ShoppingBag, ChevronRight, CheckCircle, Shield } from 'lucide-react'
+import { ShoppingBag, ChevronRight, CheckCircle, Shield, Tag, X } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { createOrder } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -21,6 +22,12 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Promo Code States
+  const [promoCode, setPromoCode] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState(null)
+  const [promoError, setPromoError] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+
   if (cart.length === 0) {
     return (
       <div className="min-h-[70vh] bg-zinc-950 flex flex-col items-center justify-center text-center px-4">
@@ -33,6 +40,66 @@ export default function CheckoutPage() {
       </div>
     )
   }
+
+  // Handle Promo Code Apply
+  const handleApplyPromo = async (e) => {
+    e.preventDefault()
+    const code = promoCode.toUpperCase().trim()
+    if (!code) return
+
+    setPromoError('')
+    setPromoLoading(true)
+
+    try {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single()
+
+      if (error || !data) {
+        // Fallback for offline/local sandbox demo mode
+        if (code === 'MAZISH10' || code === 'LAUNCH950') {
+          const mockPromo = {
+            code,
+            discount_type: code === 'LAUNCH950' ? 'fixed' : 'percentage',
+            discount_value: code === 'LAUNCH950' ? 150 : 10
+          }
+          setAppliedPromo(mockPromo)
+          setPromoCode('')
+          return
+        }
+        setPromoError('Invalid or expired promo code')
+        setAppliedPromo(null)
+      } else {
+        setAppliedPromo(data)
+        setPromoCode('')
+      }
+    } catch (err) {
+      setPromoError('Error connecting to validate promo code')
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null)
+    setPromoError('')
+  }
+
+  // Calculation helpers
+  const getDiscountAmount = () => {
+    if (!appliedPromo) return 0
+    if (appliedPromo.discount_type === 'percentage') {
+      return Math.round(cartTotal * (appliedPromo.discount_value / 100))
+    }
+    // Fixed amount discount
+    return appliedPromo.discount_value
+  }
+
+  const discountAmount = getDiscountAmount()
+  const finalTotal = Math.max(0, cartTotal - discountAmount)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -55,9 +122,11 @@ export default function CheckoutPage() {
       delivery_address: form.address,
       payment_method: form.paymentMethod,
       payment_details: form.paymentDetails || 'N/A',
-      total_amount: cartTotal,
+      total_amount: finalTotal,
       items: cart,
-      status: 'Pending'
+      status: 'Pending',
+      promo_code: appliedPromo ? appliedPromo.code : null,
+      discount_amount: discountAmount
     }
 
     const response = await createOrder(orderData)
@@ -196,7 +265,7 @@ export default function CheckoutPage() {
                 {form.paymentMethod !== 'COD' && (
                   <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-4 sm:p-6 space-y-4 animate-fadeIn">
                     <p className="text-xs text-zinc-400 font-light leading-relaxed">
-                      Please send the total sum of <strong className="text-white">৳{cartTotal}</strong> to our merchant number <strong className="text-white">01700000000</strong> using <strong className="text-amber-500">{form.paymentMethod} Send Money</strong>, then input the Transaction ID below.
+                      Please send the total sum of <strong className="text-white">৳{finalTotal}</strong> to our merchant number <strong className="text-white">01700000000</strong> using <strong className="text-amber-500">{form.paymentMethod} Send Money</strong>, then input the Transaction ID below.
                     </p>
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
@@ -220,7 +289,7 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="w-full bg-amber-500 text-zinc-950 font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-amber-400 transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
               >
-                {submitting ? 'PROCESSING...' : `PLACE ORDER • ৳${cartTotal}`}
+                {submitting ? 'PROCESSING...' : `PLACE ORDER • ৳${finalTotal}`}
               </button>
             </form>
           </div>
@@ -249,18 +318,59 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Promo Code Form */}
+              <div className="border-t border-zinc-800 pt-4 pb-2">
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg px-4 py-2.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Tag size={14} />
+                      <span>Applied: <strong>{appliedPromo.code}</strong> ({appliedPromo.discount_type === 'percentage' ? `${appliedPromo.discount_value}% Off` : `৳${appliedPromo.discount_value} Off`})</span>
+                    </div>
+                    <button type="button" onClick={handleRemovePromo} className="text-zinc-400 hover:text-white">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleApplyPromo} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="PROMO CODE"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="flex-1 bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-3 py-2 text-xs text-white uppercase focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={promoLoading}
+                      className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-white font-bold uppercase tracking-widest text-[10px] px-4 rounded-lg transition-all"
+                    >
+                      {promoLoading ? '...' : 'APPLY'}
+                    </button>
+                  </form>
+                )}
+                {promoError && (
+                  <p className="text-red-400 text-[10px] mt-1.5 ml-1">{promoError}</p>
+                )}
+              </div>
+
               <div className="border-t border-zinc-800 pt-4 space-y-3">
                 <div className="flex justify-between text-xs text-zinc-500">
                   <span>Subtotal</span>
                   <span>৳{cartTotal}</span>
                 </div>
+                {appliedPromo && (
+                  <div className="flex justify-between text-xs text-red-400">
+                    <span>Discount</span>
+                    <span>-৳{discountAmount}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-xs text-zinc-500">
                   <span>Shipping</span>
                   <span className="text-amber-500 font-medium">Free Delivery</span>
                 </div>
                 <div className="border-t border-zinc-800 pt-3 flex justify-between text-sm font-semibold text-white">
                   <span>Total</span>
-                  <span className="text-lg text-amber-500">৳{cartTotal}</span>
+                  <span className="text-lg text-amber-500">৳{finalTotal}</span>
                 </div>
               </div>
             </div>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ShoppingBag, Star, Shield, Truck, RotateCcw } from 'lucide-react'
+import { ShoppingBag, Star, Shield, Truck, RotateCcw, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { getProducts } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 
@@ -10,6 +10,32 @@ export default function HomePage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
+
+  // Slider State
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  const slides = [
+    {
+      image: "/images/banner1.png",
+      title: "MAZISH LUXURY",
+      subtitle: "The Hub of Fashion & Luxury in Bangladesh"
+    },
+    {
+      image: "/images/banner2.jpg",
+      title: "PREMIUM CAPSULES",
+      subtitle: "Handcrafted sunglasses with scratch-resistant polarized protection"
+    },
+    {
+      image: "/images/BrazilBanner.png",
+      title: "SUPPORT SELEÇÃO",
+      subtitle: "Pre-order Brazil Edition Custom Handcrafted Sunglasses"
+    },
+    {
+      image: "/images/ArgentinaBanner.png",
+      title: "SUPPORT ALBICELESTE",
+      subtitle: "Pre-order Argentina Edition Custom Handcrafted Sunglasses"
+    }
+  ]
 
   useEffect(() => {
     async function loadData() {
@@ -20,36 +46,78 @@ export default function HomePage() {
     loadData()
   }, [])
 
+  // Auto-slide effect
+  useEffect(() => {
+    if (loading) return
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [loading, slides.length])
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+
+  // Filter featured products (excluding preorders)
+  const featuredProducts = products
+    .filter(p => p.id !== 'fifa-brazil' && p.id !== 'fifa-argentina' && p.is_featured)
+    .slice(0, 3)
+
   return (
     <div className="relative overflow-hidden bg-zinc-950">
-      {/* Hero Section */}
-      <section className="relative flex min-h-[90vh] items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black px-4 py-20 text-center">
-        {/* Subtle light leak animations */}
-        <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-amber-500/5 blur-[128px] animate-pulse pointer-events-none"></div>
-        <div className="absolute bottom-1/3 right-1/4 h-96 w-96 rounded-full bg-amber-600/5 blur-[128px] animate-pulse pointer-events-none"></div>
-
-        <div className="relative z-10 max-w-4xl space-y-8">
-          <span className="text-xs font-semibold tracking-[0.4em] text-amber-500 uppercase">
-            Est. 2026 • Bangladesh
-          </span>
-          <h1 className="font-luxury text-5xl sm:text-7xl lg:text-8xl tracking-[0.05em] text-white leading-tight">
-            MAZISH
-          </h1>
-          <p className="font-luxury text-xl sm:text-3xl text-zinc-400 tracking-[0.1em] font-light max-w-2xl mx-auto">
-            The Hub of Fashion & Luxury
-          </p>
-          <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto"></div>
-          <p className="text-zinc-500 text-sm max-w-md mx-auto font-light leading-relaxed">
-            We are not just a store. We are a statement. Starting with our limited-run premium sunglasses collection, we are defining luxury.
-          </p>
-          <div className="pt-6">
-            <a
-              href="#shop"
-              className="inline-block border border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-zinc-950 font-semibold tracking-widest text-xs uppercase px-8 py-4 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.1)] hover:shadow-[0_0_30px_rgba(245,158,11,0.25)]"
-            >
-              Explore Sunglasses Collection
-            </a>
+      {/* Banner Image Slider Hero */}
+      <section className="relative w-full max-w-[1920px] mx-auto aspect-[1920/800] overflow-hidden bg-black">
+        {/* Slides */}
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+              index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <Link href="/shop" className="block w-full h-full cursor-pointer">
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="w-full h-full object-cover"
+              />
+            </Link>
           </div>
+        ))}
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full border border-white/10 bg-black/25 hover:bg-amber-500 hover:text-zinc-950 text-white transition-all focus:outline-none"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full border border-white/10 bg-black/25 hover:bg-amber-500 hover:text-zinc-950 text-white transition-all focus:outline-none"
+          aria-label="Next slide"
+        >
+          <ChevronRight size={20} />
+        </button>
+
+        {/* Indicator Dots */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex space-x-2.5">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentSlide ? 'w-8 bg-amber-500' : 'w-2 bg-white/40'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            ></button>
+          ))}
         </div>
       </section>
 
@@ -146,11 +214,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Products Grid Section */}
-      <section id="shop" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Featured Collection Grid Section */}
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 space-y-4">
-          <span className="text-amber-500 text-xs tracking-widest font-semibold uppercase">Limited Run</span>
-          <h2 className="font-luxury text-3xl sm:text-5xl text-white tracking-wider">Premium Sunglasses</h2>
+          <span className="text-amber-500 text-xs tracking-widest font-semibold uppercase">Featured Capsule</span>
+          <h2 className="font-luxury text-3xl sm:text-5xl text-white tracking-wider">Premium Featured Sunglasses</h2>
           <div className="h-[1px] w-12 bg-zinc-800 mx-auto"></div>
         </div>
 
@@ -159,70 +227,84 @@ export default function HomePage() {
             <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-amber-500"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products
-              .filter((p) => p.id !== 'fifa-brazil' && p.id !== 'fifa-argentina')
-              .map((product) => (
-              <div
-                key={product.id}
-                className="group relative flex flex-col bg-zinc-900/40 rounded-xl overflow-hidden border border-zinc-900 hover:border-zinc-800 transition-all duration-300"
-              >
-                {/* Image */}
-                <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-zinc-950">
-                  <img
-                    src={product.images?.[0]}
-                    alt={product.name}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  {product.discount_price && (
-                    <span className="absolute top-4 left-4 bg-amber-500 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">
-                      Special Offer
-                    </span>
-                  )}
-                </Link>
-
-                {/* Details */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                  <div>
-                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
-                      {product.category}
-                    </span>
-                    <Link href={`/product/${product.id}`}>
-                      <h3 className="text-lg font-medium text-white tracking-wide mt-1 group-hover:text-amber-500 transition-colors duration-200">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <p className="text-zinc-500 text-xs font-light mt-2 line-clamp-2 leading-relaxed">
-                      {product.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-lg font-bold text-amber-500">
-                        ৳{product.discount_price || product.price}
+          <div className="space-y-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="group relative flex flex-col bg-zinc-900/40 rounded-xl overflow-hidden border border-zinc-900 hover:border-zinc-800 transition-all duration-300"
+                >
+                  {/* Image */}
+                  <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-zinc-950">
+                    <img
+                      src={product.images?.[0]}
+                      alt={product.name}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    {product.discount_price && (
+                      <span className="absolute top-4 left-4 bg-amber-500 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">
+                        Special Offer
                       </span>
-                      {product.discount_price && (
-                        <span className="text-xs text-zinc-600 line-through">
-                          ৳{product.price}
+                    )}
+                  </Link>
+
+                  {/* Details */}
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
+                          {product.category}
                         </span>
-                      )}
+                        <span className="text-[9px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
+                          {product.gender}
+                        </span>
+                      </div>
+                      <Link href={`/product/${product.id}`}>
+                        <h3 className="text-lg font-medium text-white tracking-wide mt-2.5 group-hover:text-amber-500 transition-colors duration-200">
+                          {product.name}
+                        </h3>
+                      </Link>
+                      <p className="text-zinc-500 text-xs font-light mt-2 line-clamp-2 leading-relaxed">
+                        {product.description}
+                      </p>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        addToCart(product, 1)
-                        // Trigger custom UI notification if needed
-                      }}
-                      className="flex items-center justify-center p-2 rounded-full border border-zinc-800 bg-zinc-950 hover:bg-amber-500 hover:text-zinc-950 transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <ShoppingBag size={16} />
-                    </button>
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-baseline space-x-2">
+                        <span className="text-lg font-bold text-amber-500">
+                          ৳{product.discount_price || product.price}
+                        </span>
+                        {product.discount_price && (
+                          <span className="text-xs text-zinc-600 line-through">
+                            ৳{product.price}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          addToCart(product, 1)
+                        }}
+                        className="flex items-center justify-center p-2 rounded-full border border-zinc-800 bg-zinc-950 hover:bg-amber-500 hover:text-zinc-950 transition-colors"
+                        aria-label="Add to cart"
+                      >
+                        <ShoppingBag size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <div className="text-center pt-4">
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 border border-zinc-800 hover:border-zinc-700 bg-zinc-900/40 text-xs font-semibold tracking-widest uppercase text-white hover:text-amber-500 px-8 py-4 rounded-full transition-all duration-300"
+              >
+                Explore All Products
+                <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
         )}
       </section>
