@@ -152,7 +152,7 @@ export default function HomePage() {
             <h2 className="font-luxury text-3xl sm:text-5xl text-white tracking-widest uppercase">THE PRE-ORDER BATTLE</h2>
             <div className="h-[1px] w-12 bg-zinc-800 mx-auto"></div>
             <p className="text-zinc-500 text-xs font-light max-w-md mx-auto leading-relaxed">
-              Show your colors. Brazil vs Argentina. Handcrafted luxury statements. Pre-order launch offer at ৳950 instead of ৳1400.
+              Show your colors. Brazil vs Argentina. Handcrafted luxury statements. Pre-order launch offer at ৳999 instead of ৳1500.
             </p>
           </div>
 
@@ -172,11 +172,11 @@ export default function HomePage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xl font-bold text-amber-500">৳950</span>
-                  <span className="text-xs text-zinc-600 line-through ml-2">৳1400</span>
+                  <span className="text-xl font-bold text-amber-500">৳999</span>
+                  <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
                 <button
-                  onClick={() => addToCart({ id: "fifa-brazil", name: "MAZISH Handcrafted Brazil Edition", price: 1400, discount_price: 950, images: ["/images/BrazilGlass.jpg"] })}
+                  onClick={() => addToCart({ id: "fifa-brazil", name: "MAZISH Handcrafted Brazil Edition", price: 1500, discount_price: 999, images: ["/images/BrazilGlass.jpg"] })}
                   className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-6 py-3 rounded-full transition-all duration-300"
                 >
                   Pre-order Brazil
@@ -199,11 +199,11 @@ export default function HomePage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xl font-bold text-amber-500">৳950</span>
-                  <span className="text-xs text-zinc-600 line-through ml-2">৳1400</span>
+                  <span className="text-xl font-bold text-amber-500">৳999</span>
+                  <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
                 <button
-                  onClick={() => addToCart({ id: "fifa-argentina", name: "MAZISH Handcrafted Argentina Edition", price: 1400, discount_price: 950, images: ["/images/ArgentinaGlass.jpg"] })}
+                  onClick={() => addToCart({ id: "fifa-argentina", name: "MAZISH Handcrafted Argentina Edition", price: 1500, discount_price: 999, images: ["/images/ArgentinaGlass.jpg"] })}
                   className="bg-sky-500 hover:bg-sky-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-6 py-3 rounded-full transition-all duration-300"
                 >
                   Pre-order Argentina
