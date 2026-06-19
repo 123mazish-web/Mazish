@@ -15,7 +15,9 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     name: '',
     phone: '',
+    email: '',
     address: '',
+    shippingArea: 'dhaka', // 'dhaka' or 'outside'
     paymentMethod: 'COD',
     paymentDetails: ''
   })
@@ -99,11 +101,12 @@ export default function CheckoutPage() {
   }
 
   const discountAmount = getDiscountAmount()
-  const finalTotal = Math.max(0, cartTotal - discountAmount)
+  const shippingCost = form.shippingArea === 'dhaka' ? 70 : 130
+  const finalTotal = Math.max(0, cartTotal - discountAmount + shippingCost)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name || !form.phone || !form.address) {
+    if (!form.name || !form.phone || !form.email || !form.address) {
       setError('Please fill in all delivery details')
       return
     }
@@ -119,7 +122,9 @@ export default function CheckoutPage() {
     const orderData = {
       customer_name: form.name,
       phone: form.phone,
+      email: form.email,
       delivery_address: form.address,
+      shipping_cost: shippingCost,
       payment_method: form.paymentMethod,
       payment_details: form.paymentDetails || 'N/A',
       total_amount: finalTotal,
@@ -185,18 +190,67 @@ export default function CheckoutPage() {
                     />
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="e.g. 017XXXXXXXX"
+                        value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-3 text-sm text-white focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g. customer@example.com"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-3 text-sm text-white focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
-                      Phone Number *
+                      Shipping Region *
                     </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="e.g. 017XXXXXXXX"
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-3 text-sm text-white focus:outline-none transition-colors"
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <label className={`flex flex-col items-center justify-center border p-3 rounded-xl cursor-pointer transition-all ${form.shippingArea === 'dhaka' ? 'border-amber-500 bg-amber-500/5' : 'border-zinc-850 bg-zinc-950 hover:border-zinc-700'}`}>
+                        <input
+                          type="radio"
+                          name="shippingArea"
+                          value="dhaka"
+                          checked={form.shippingArea === 'dhaka'}
+                          onChange={() => setForm({ ...form, shippingArea: 'dhaka' })}
+                          className="sr-only"
+                        />
+                        <span className="text-xs font-bold uppercase tracking-wider text-white mb-1">Inside Dhaka</span>
+                        <span className="text-[10px] text-zinc-500">৳70 Shipping</span>
+                      </label>
+                      
+                      <label className={`flex flex-col items-center justify-center border p-3 rounded-xl cursor-pointer transition-all ${form.shippingArea === 'outside' ? 'border-amber-500 bg-amber-500/5' : 'border-zinc-850 bg-zinc-950 hover:border-zinc-700'}`}>
+                        <input
+                          type="radio"
+                          name="shippingArea"
+                          value="outside"
+                          checked={form.shippingArea === 'outside'}
+                          onChange={() => setForm({ ...form, shippingArea: 'outside' })}
+                          className="sr-only"
+                        />
+                        <span className="text-xs font-bold uppercase tracking-wider text-white mb-1">Outside Dhaka</span>
+                        <span className="text-[10px] text-zinc-500">৳130 Shipping</span>
+                      </label>
+                    </div>
                   </div>
 
                   <div>
@@ -221,7 +275,7 @@ export default function CheckoutPage() {
                   Payment Method
                 </h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <label className={`flex flex-col items-center justify-center border p-4 rounded-xl cursor-pointer transition-all ${form.paymentMethod === 'COD' ? 'border-amber-500 bg-amber-500/5' : 'border-zinc-850 bg-zinc-950 hover:border-zinc-700'}`}>
                     <input
                       type="radio"
@@ -245,19 +299,6 @@ export default function CheckoutPage() {
                       className="sr-only"
                     />
                     <span className="text-xs font-bold uppercase tracking-wider text-pink-500 mb-1">bKash</span>
-                    <span className="text-[10px] text-zinc-500">Manual payment</span>
-                  </label>
-
-                  <label className={`flex flex-col items-center justify-center border p-4 rounded-xl cursor-pointer transition-all ${form.paymentMethod === 'Nagad' ? 'border-amber-500 bg-amber-500/5' : 'border-zinc-850 bg-zinc-950 hover:border-zinc-700'}`}>
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="Nagad"
-                      checked={form.paymentMethod === 'Nagad'}
-                      onChange={() => setForm({ ...form, paymentMethod: 'Nagad' })}
-                      className="sr-only"
-                    />
-                    <span className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Nagad</span>
                     <span className="text-[10px] text-zinc-500">Manual payment</span>
                   </label>
                 </div>
@@ -366,7 +407,7 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between text-xs text-zinc-500">
                   <span>Shipping</span>
-                  <span className="text-amber-500 font-medium">Free Delivery</span>
+                  <span className="text-amber-500 font-medium">৳{shippingCost}</span>
                 </div>
                 <div className="border-t border-zinc-800 pt-3 flex justify-between text-sm font-semibold text-white">
                   <span>Total</span>

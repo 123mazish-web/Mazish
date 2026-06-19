@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ShoppingBag, Star, Shield, Truck, RotateCcw, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import { DEFAULT_PRODUCTS } from '@/lib/products'
 import { getProducts } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 
 export default function HomePage() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [loading, setLoading] = useState(false)
   const { addToCart } = useCart()
 
   // Slider State
@@ -40,20 +41,20 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       const data = await getProducts()
-      setProducts(data)
-      setLoading(false)
+      if (data && data.length > 0) {
+        setProducts(data)
+      }
     }
     loadData()
   }, [])
 
   // Auto-slide effect
   useEffect(() => {
-    if (loading) return
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 5000)
     return () => clearInterval(timer)
-  }, [loading, slides.length])
+  }, [slides.length])
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
@@ -142,17 +143,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FIFA Special Edition Pre-order section */}
+      {/* FIFA Specials section */}
       <section className="py-24 bg-gradient-to-b from-zinc-950 via-zinc-900/20 to-zinc-950 border-b border-zinc-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 space-y-4">
             <span className="inline-block px-3.5 py-1 bg-amber-500/10 text-amber-400 text-[10px] tracking-widest font-semibold uppercase rounded-full border border-amber-500/20">
               Limited FIFA Edition Game
             </span>
-            <h2 className="font-luxury text-3xl sm:text-5xl text-white tracking-widest uppercase">THE PRE-ORDER BATTLE</h2>
+            <h2 className="font-luxury text-3xl sm:text-5xl text-white tracking-widest uppercase">THE FIFA SPECIALS</h2>
             <div className="h-[1px] w-12 bg-zinc-800 mx-auto"></div>
             <p className="text-zinc-500 text-xs font-light max-w-md mx-auto leading-relaxed">
-              Show your colors. Brazil vs Argentina. Handcrafted luxury statements. Pre-order launch offer at ৳999 instead of ৳1500.
+              Show your colors. Brazil vs Argentina. Handcrafted luxury statements. Special launch offer at ৳999 instead of ৳1500.
             </p>
           </div>
 
@@ -162,25 +163,27 @@ export default function HomePage() {
               <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-emerald-500/5 blur-[64px] pointer-events-none"></div>
               <div>
                 <span className="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase">Brazil Edition</span>
-                <h3 className="font-luxury text-2xl sm:text-3xl text-white tracking-wide mt-2">Brazil Special Edition</h3>
+                <Link href="/product/fifa-brazil">
+                  <h3 className="font-luxury text-2xl sm:text-3xl text-white tracking-wide mt-2 hover:text-amber-500 transition-colors">Brazil Special Edition</h3>
+                </Link>
                 <p className="text-zinc-500 text-xs font-light mt-3 leading-relaxed max-w-sm">
                   Handcrafted acetate frame with signature green and gold detailing. Fitted with premium polarized golden-yellow gradient lenses.
                 </p>
               </div>
-              <div className="my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900">
-                <img src="/images/BrazilGlass.jpg" alt="Brazil Glass" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              </div>
+              <Link href="/product/fifa-brazil" className="block my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900 cursor-pointer">
+                <img src="/images/Brazil1.jpg" alt="Brazil Glass" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              </Link>
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xl font-bold text-amber-500">৳999</span>
                   <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
-                <button
-                  onClick={() => addToCart({ id: "fifa-brazil", name: "MAZISH Handcrafted Brazil Edition", price: 1500, discount_price: 999, images: ["/images/BrazilGlass.jpg"] })}
-                  className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-6 py-3 rounded-full transition-all duration-300"
+                <Link
+                  href="/product/fifa-brazil"
+                  className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-8 py-3.5 rounded-full transition-all duration-300 text-center"
                 >
-                  Pre-order Brazil
-                </button>
+                  Order Now
+                </Link>
               </div>
             </div>
 
@@ -189,25 +192,27 @@ export default function HomePage() {
               <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-sky-500/5 blur-[64px] pointer-events-none"></div>
               <div>
                 <span className="text-[10px] font-semibold text-sky-400 tracking-wider uppercase">Argentina Edition</span>
-                <h3 className="font-luxury text-2xl sm:text-3xl text-white tracking-wide mt-2">Argentina Special Edition</h3>
+                <Link href="/product/fifa-argentina">
+                  <h3 className="font-luxury text-2xl sm:text-3xl text-white tracking-wide mt-2 hover:text-amber-500 transition-colors">Argentina Special Edition</h3>
+                </Link>
                 <p className="text-zinc-500 text-xs font-light mt-3 leading-relaxed max-w-sm">
                   Pristine sky-blue and white accents, custom handcrafted frame offering unmatched comfort and high-contrast polarized lenses.
                 </p>
               </div>
-              <div className="my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900">
-                <img src="/images/ArgentinaGlass.jpg" alt="Argentina Glass" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              </div>
+              <Link href="/product/fifa-argentina" className="block my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900 cursor-pointer">
+                <img src="/images/Argentina1.jpg" alt="Argentina Glass" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              </Link>
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xl font-bold text-amber-500">৳999</span>
                   <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
-                <button
-                  onClick={() => addToCart({ id: "fifa-argentina", name: "MAZISH Handcrafted Argentina Edition", price: 1500, discount_price: 999, images: ["/images/ArgentinaGlass.jpg"] })}
-                  className="bg-sky-500 hover:bg-sky-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-6 py-3 rounded-full transition-all duration-300"
+                <Link
+                  href="/product/fifa-argentina"
+                  className="bg-sky-500 hover:bg-sky-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-8 py-3.5 rounded-full transition-all duration-300 text-center"
                 >
-                  Pre-order Argentina
-                </button>
+                  Order Now
+                </Link>
               </div>
             </div>
           </div>

@@ -5,20 +5,28 @@ import Link from 'next/link'
 import { ArrowLeft, ShoppingBag, Truck, Shield, CheckCircle } from 'lucide-react'
 import { getProductById } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
+import { DEFAULT_PRODUCTS } from '@/lib/products'
 
 export default function ProductPage({ params }) {
   const { id } = use(params)
-  const [product, setProduct] = useState(null)
-  const [loading, setLoading] = useState(true)
+  
+  // Optimistically load from static fallback to make the page open instantly
+  const initialProduct = DEFAULT_PRODUCTS.find(p => p.id === id) || null
+
+  const [product, setProduct] = useState(initialProduct)
+  const [loading, setLoading] = useState(initialProduct ? false : true)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
   const { addToCart } = useCart()
 
   useEffect(() => {
     async function loadProduct() {
       if (id) {
         const data = await getProductById(id)
-        setProduct(data)
+        if (data) {
+          setProduct(data)
+        }
       }
       setLoading(false)
     }
@@ -63,17 +71,36 @@ export default function ProductPage({ params }) {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-          {/* Left Column - Product Image */}
-          <div className="relative overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-900/20 aspect-square flex items-center justify-center">
-            <img
-              src={product.images?.[0]}
-              alt={product.name}
-              className="h-full w-full object-cover"
-            />
-            {product.discount_price && (
-              <span className="absolute top-6 left-6 bg-amber-500 text-zinc-950 font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-lg">
-                Special Pricing
-              </span>
+          {/* Left Column - Product Image & Gallery */}
+          <div className="space-y-4">
+            <div className="relative overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-900/20 aspect-square flex items-center justify-center">
+              <img
+                src={product.images?.[activeImageIndex] || product.images?.[0]}
+                alt={product.name}
+                className="h-full w-full object-cover"
+              />
+              {product.discount_price && (
+                <span className="absolute top-6 left-6 bg-amber-500 text-zinc-950 font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-lg">
+                  Special Pricing
+                </span>
+              )}
+            </div>
+            
+            {/* Gallery Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-950/40 transition-all ${
+                      idx === activeImageIndex ? 'border-amber-500' : 'border-zinc-900 hover:border-zinc-800'
+                    }`}
+                  >
+                    <img src={img} alt={`${product.name} View ${idx + 1}`} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 

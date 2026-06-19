@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getProducts } from '@/lib/db'
+import { DEFAULT_PRODUCTS } from '@/lib/products'
 import { Package, ClipboardList, PlusCircle, CheckCircle, Truck, Eye, RefreshCw, Tag, Trash2, Search, DollarSign, ShoppingCart, Percent, Lock, ListFilter } from 'lucide-react'
 
 export default function AdminPage() {
@@ -12,7 +13,7 @@ export default function AdminPage() {
   const [loginLoading, setLoginLoading] = useState(false)
 
   const [orders, setOrders] = useState([])
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
   const [promoCodes, setPromoCodes] = useState([])
   const [categories, setCategories] = useState([])
   const [activeTab, setActiveTab] = useState('orders') // 'orders', 'products', 'new-product', 'promo-codes', 'categories'
@@ -55,14 +56,17 @@ export default function AdminPage() {
     const token = sessionStorage.getItem('mazish_admin_token')
     if (token === 'mazish-secure-admin-token') {
       setIsAuthenticated(true)
-      loadData()
+      // Optimistically load cached local orders
+      const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+      setOrders(localOrders)
+      loadData(true)
     } else {
       setLoading(false)
     }
   }, [])
 
-  async function loadData() {
-    setLoading(true)
+  async function loadData(isInitial = false) {
+    if (isInitial) setLoading(true)
     setMessage('')
     try {
       // 1. Load orders
@@ -143,7 +147,10 @@ export default function AdminPage() {
       if (result.success) {
         sessionStorage.setItem('mazish_admin_token', result.token)
         setIsAuthenticated(true)
-        loadData()
+        // Optimistically load local orders before trigger
+        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+        setOrders(localOrders)
+        loadData(true)
       } else {
         setLoginError(result.error || 'Authentication failed')
       }
@@ -165,30 +172,36 @@ export default function AdminPage() {
     setMessage('')
     try {
       const order = orders.find(o => o.id === orderId)
-      if (order && !order.customer_name) {
+      const isLocal = order && (!order.customer_name || typeof order.id === 'string' && order.id.startsWith('demo-') || !orderId.includes('-'))
+
+      if (isLocal) {
         const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
         const updated = localOrders.map(o => o.id === orderId ? { ...o, status: targetStatus } : o)
         localStorage.setItem('mazish_orders', JSON.stringify(updated))
         loadData()
-        setMessage(`Order status updated to ${targetStatus}`)
+        setMessage(`Order status updated to ${targetStatus} (Local Sandbox Mode)`)
       } else {
-        const { error } = await supabase
-          .from('orders')
-          .update({ status: targetStatus })
-          .eq('id', orderId)
-
-        if (error) {
+        const res = await fetch('/api/admin/orders/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, status: targetStatus })
+        })
+        const result = await res.json()
+        if (result.success) {
+          loadData()
+          setMessage(`Order status updated to ${targetStatus}`)
+        } else {
+          console.warn("DB update failed, updating locally:", result.error)
           const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
           const updated = localOrders.map(o => o.id === orderId ? { ...o, status: targetStatus } : o)
           localStorage.setItem('mazish_orders', JSON.stringify(updated))
           loadData()
-        } else {
-          loadData()
+          setMessage(`Order status updated locally: ${targetStatus}`)
         }
-        setMessage(`Order status updated to ${targetStatus}`)
       }
     } catch (err) {
       console.error(err)
+      setMessage(`Connection failed: ${err.message}`)
     }
     setActionLoading(null)
   }
@@ -650,7 +663,7 @@ export default function AdminPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {['All', 'Pending', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
+                {['All', 'Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
@@ -695,10 +708,14 @@ export default function AdminPage() {
                         <td className="p-4 sm:p-6 space-y-1">
                           <p className="text-white font-medium">{order.customer_name}</p>
                           <p className="text-xs text-zinc-400">{order.phone}</p>
+                          {order.email && <p className="text-[10px] text-zinc-400 truncate max-w-[180px]">{order.email}</p>}
                           <p className="text-[10px] text-zinc-500 line-clamp-1">{order.delivery_address}</p>
                         </td>
                         <td className="p-4 sm:p-6 space-y-1">
                           <p className="text-white">৳{order.total_amount}</p>
+                          {order.shipping_cost !== undefined && order.shipping_cost !== null && (
+                            <p className="text-[9px] text-zinc-500">Shipping: ৳{order.shipping_cost}</p>
+                          )}
                           <p className="text-[10px] text-zinc-500">
                             {order.items?.map(i => `${i.name} (${i.quantity})`).join(', ')}
                           </p>
@@ -719,6 +736,7 @@ export default function AdminPage() {
                         <td className="p-4 sm:p-6">
                           <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded ${
                             order.status === 'Shipped' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                            order.status === 'Confirmed' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' :
                             order.status === 'Cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
                             'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
@@ -731,6 +749,16 @@ export default function AdminPage() {
                         <td className="p-4 sm:p-6 text-right space-y-2">
                           <div className="flex flex-col sm:flex-row gap-2 justify-end">
                             {order.status === 'Pending' && (
+                              <button
+                                onClick={() => handleUpdateStatus(order.id, order.status, 'Confirmed')}
+                                disabled={actionLoading === order.id}
+                                className="text-emerald-400 hover:text-emerald-300 font-bold text-[10px] tracking-wider uppercase border border-zinc-800 bg-zinc-950 px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+                              >
+                                Confirm Order
+                              </button>
+                            )}
+
+                            {order.status === 'Confirmed' && (
                               <button
                                 onClick={() => handleDispatchSteadfast(order.id)}
                                 disabled={actionLoading === order.id + '-steadfast'}
@@ -902,8 +930,14 @@ export default function AdminPage() {
                   <option value="/images/Sunglass6.png">Sunglasses Preview 6</option>
                   <option value="/images/Sunglass7.png">Sunglasses Preview 7</option>
                   <option value="/images/Sunglass8.png">Sunglasses Preview 8</option>
-                  <option value="/images/BrazilGlass.jpg">Brazil Special Glass</option>
-                  <option value="/images/ArgentinaGlass.jpg">Argentina Special Glass</option>
+                  <option value="/images/BrazilGlass.jpg">Brazil Special Glass (Draft Card)</option>
+                  <option value="/images/ArgentinaGlass.jpg">Argentina Special Glass (Draft Card)</option>
+                  <option value="/images/Brazil1.jpg">Brazil Glass View 1</option>
+                  <option value="/images/Brazil2.jpg">Brazil Glass View 2</option>
+                  <option value="/images/Brazil3.jpg">Brazil Glass View 3</option>
+                  <option value="/images/Argentina1.jpg">Argentina Glass View 1</option>
+                  <option value="/images/Argentina2.jpg">Argentina Glass View 2</option>
+                  <option value="/images/Argentina3.jpg">Argentina Glass View 3</option>
                 </select>
               </div>
 

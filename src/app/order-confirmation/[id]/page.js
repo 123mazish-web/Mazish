@@ -118,8 +118,9 @@ export default function OrderConfirmationPage({ params, searchParams }) {
               <div className="flex items-start space-x-3.5">
                 <Phone size={18} className="text-amber-500 mt-0.5" />
                 <div>
-                  <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Contact Number</h4>
-                  <p className="text-sm text-zinc-300 font-light mt-1.5">{order.phone}</p>
+                  <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Contact Info</h4>
+                  <p className="text-sm text-zinc-300 font-light mt-1.5">Phone: {order.phone}</p>
+                  {order.email && <p className="text-xs text-zinc-500 font-light mt-1">Email: {order.email}</p>}
                 </div>
               </div>
             </div>
@@ -160,6 +161,18 @@ export default function OrderConfirmationPage({ params, searchParams }) {
                   <span className="text-white font-medium">৳{item.price * item.quantity}</span>
                 </div>
               ))}
+              {order.shipping_cost !== undefined && order.shipping_cost !== null && (
+                <div className="flex justify-between text-sm text-zinc-500">
+                  <span>Shipping Cost</span>
+                  <span>৳{order.shipping_cost}</span>
+                </div>
+              )}
+              {order.discount_amount > 0 && (
+                <div className="flex justify-between text-sm text-red-400">
+                  <span>Discount</span>
+                  <span>-৳{order.discount_amount}</span>
+                </div>
+              )}
               <div className="border-t border-zinc-850 pt-4 flex justify-between text-base font-bold text-white">
                 <span>Total Paid</span>
                 <span className="text-amber-500">৳{order.total_amount}</span>

@@ -5,11 +5,17 @@ import Link from 'next/link'
 import { ShoppingBag, Search, Tag, SlidersHorizontal } from 'lucide-react'
 import { getProducts, getCategories } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
+import { DEFAULT_PRODUCTS } from '@/lib/products'
 
 export default function ShopPage() {
-  const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [categories, setCategories] = useState([
+    { name: 'Sunglasses' },
+    { name: 'Apparel' },
+    { name: 'Accessories' },
+    { name: 'FIFA Special Edition' }
+  ])
+  const [loading, setLoading] = useState(false)
   const { addToCart } = useCart()
 
   // Filters State
@@ -22,9 +28,12 @@ export default function ShopPage() {
     async function loadData() {
       const prodData = await getProducts()
       const catData = await getCategories()
-      setProducts(prodData)
-      setCategories(catData)
-      setLoading(false)
+      if (prodData && prodData.length > 0) {
+        setProducts(prodData)
+      }
+      if (catData && catData.length > 0) {
+        setCategories(catData)
+      }
     }
     loadData()
   }, [])
@@ -32,10 +41,6 @@ export default function ShopPage() {
   // Filter & Sort Logic
   const filteredProducts = products
     .filter((p) => {
-      // Exclude FIFA preorder editions from general shop grid unless explicitly filtered
-      const isFifa = p.id === 'fifa-brazil' || p.id === 'fifa-argentina'
-      if (isFifa && selectedCategory !== 'FIFA Special Edition') return false
-
       const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory
       const matchesGender = selectedGender === 'All' || p.gender === selectedGender || p.gender === 'Unisex'
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 

@@ -101,12 +101,12 @@ export const DEFAULT_PRODUCTS = [
     description: "Special FIFA Edition. Show your pride for the Seleção with this handcrafted luxury piece featuring signature green and gold acetate details and polarized golden-yellow gradient lenses.",
     price: 1500,
     discount_price: 999,
-    images: ["/images/BrazilGlass.jpg"],
+    images: ["/images/Brazil1.jpg", "/images/Brazil2.jpg", "/images/Brazil3.jpg"],
     category: "FIFA Special Edition",
     gender: "Unisex",
     stock: 50,
     is_featured: true,
-    is_preorder: true
+    is_preorder: false
   },
   {
     id: "fifa-argentina",
@@ -114,11 +114,11 @@ export const DEFAULT_PRODUCTS = [
     description: "Special FIFA Edition. Celebrate the Albiceleste with this handcrafted luxury frame featuring pristine sky-blue and white accents, fitted with high-contrast polarized lenses.",
     price: 1500,
     discount_price: 999,
-    images: ["/images/ArgentinaGlass.jpg"],
+    images: ["/images/Argentina1.jpg", "/images/Argentina2.jpg", "/images/Argentina3.jpg"],
     category: "FIFA Special Edition",
     gender: "Unisex",
     stock: 50,
     is_featured: true,
-    is_preorder: true
+    is_preorder: false
   }
 ]
