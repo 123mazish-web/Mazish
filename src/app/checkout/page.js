@@ -106,7 +106,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name || !form.phone || !form.email || !form.address) {
+    if (!form.name || !form.phone || !form.address) {
       setError('Please fill in all delivery details')
       return
     }
@@ -207,11 +207,10 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
-                        Email Address *
+                        Email Address (Optional)
                       </label>
                       <input
                         type="email"
-                        required
                         placeholder="e.g. customer@example.com"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
