@@ -34,6 +34,9 @@ export default function Header() {
             <Link href="/shop" className="hover:text-amber-500 transition-colors duration-200">
               Shop
             </Link>
+            <Link href="/track" className="hover:text-amber-500 transition-colors duration-200">
+              Track Order
+            </Link>
             <Link href="/about" className="hover:text-amber-500 transition-colors duration-200">
               About
             </Link>
@@ -89,6 +92,13 @@ export default function Header() {
               className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
             >
               Shop
+            </Link>
+            <Link
+              href="/track"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
+            >
+              Track Order
             </Link>
             <Link
               href="/about"

@@ -35,7 +35,10 @@ export default function RootLayout({ children }) {
       className={`${cormorant.variable} ${montserrat.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans bg-zinc-950 text-zinc-100 selection:bg-amber-500 selection:text-zinc-950">
+      <body 
+        className="min-h-full flex flex-col font-sans bg-zinc-950 text-zinc-100 selection:bg-amber-500 selection:text-zinc-950"
+        suppressHydrationWarning
+      >
         {/* Google Tag Manager (Script Injection via next/script) */}
         <Script id="gtm" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
