@@ -3,6 +3,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import NavigationEvents from "@/components/NavigationEvents";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-luxury",
@@ -56,6 +57,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         {/* End Google Tag Manager (noscript) */}
+        
+        {/* Route Tracking for GTM */}
+        <NavigationEvents />
+
         <CartProvider>
           <Header />
           <main className="flex-grow">{children}</main>
