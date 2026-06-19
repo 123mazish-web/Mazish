@@ -22,6 +22,8 @@ export default function CheckoutPage() {
     paymentMethod: 'COD',
     paymentDetails: ''
   })
+  const [bkashLast3, setBkashLast3] = useState('')
+  const [bkashTxid, setBkashTxid] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -112,13 +114,19 @@ export default function CheckoutPage() {
       return
     }
 
-    if (form.paymentMethod !== 'COD' && !form.paymentDetails) {
-      setError('Please enter the Transaction ID for verification')
-      return
+    if (form.paymentMethod !== 'COD') {
+      if (!bkashLast3 || bkashLast3.length !== 3) {
+        setError('Please enter exactly the last 3 digits of the sender phone number')
+        return
+      }
     }
 
     setError('')
     setSubmitting(true)
+
+    const paymentDetailsString = form.paymentMethod === 'COD' 
+      ? 'COD' 
+      : `Last 3 digits: ${bkashLast3}${bkashTxid ? ` | TxID: ${bkashTxid}` : ''}`
 
     const orderData = {
       customer_name: form.name,
@@ -127,7 +135,7 @@ export default function CheckoutPage() {
       delivery_address: form.address,
       shipping_cost: shippingCost,
       payment_method: form.paymentMethod,
-      payment_details: form.paymentDetails || 'N/A',
+      payment_details: paymentDetailsString,
       total_amount: finalTotal,
       items: cart,
       status: 'Pending',
@@ -306,20 +314,38 @@ export default function CheckoutPage() {
                 {form.paymentMethod !== 'COD' && (
                   <div className="bg-zinc-950 border border-zinc-850 rounded-xl p-4 sm:p-6 space-y-4 animate-fadeIn">
                     <p className="text-xs text-zinc-400 font-light leading-relaxed">
-                      Please send the total sum of <strong className="text-white">৳{finalTotal}</strong> to our merchant number <strong className="text-white">01700000000</strong> using <strong className="text-amber-500">{form.paymentMethod} Send Money</strong>, then input the Transaction ID below.
+                      Please send the total sum of <strong className="text-white">৳{finalTotal}</strong> to our bKash personal number <strong className="text-white">01788334122</strong> using <strong className="text-amber-500">{form.paymentMethod} Send Money</strong>.
                     </p>
-                    <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                        Transaction ID *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. AH87B8N9"
-                        value={form.paymentDetails}
-                        onChange={(e) => setForm({ ...form, paymentDetails: e.target.value })}
-                        className="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                          Last 3 Digits of Sender Phone *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={3}
+                          placeholder="e.g. 122"
+                          value={bkashLast3}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            if (val.length <= 3) setBkashLast3(val);
+                          }}
+                          className="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                          Transaction ID (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. AH87B8N9"
+                          value={bkashTxid}
+                          onChange={(e) => setBkashTxid(e.target.value)}
+                          className="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

@@ -711,6 +711,16 @@ export default function AdminPage() {
                           <p className="text-[10px] text-zinc-500">
                             {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
+                          <div className="pt-1">
+                            <span className={`inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                              order.payment_method === 'COD' ? 'bg-zinc-800 text-zinc-300' : 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
+                            }`}>
+                              {order.payment_method}
+                            </span>
+                            {order.payment_details && order.payment_details !== 'COD' && order.payment_details !== 'N/A' && (
+                              <p className="text-[9px] text-zinc-400 mt-1 font-mono leading-tight">{order.payment_details}</p>
+                            )}
+                          </div>
                         </td>
                         <td className="p-4 sm:p-6 space-y-1">
                           <p className="text-white font-medium">{order.customer_name}</p>

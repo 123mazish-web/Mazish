@@ -29,6 +29,7 @@ export async function POST(req) {
     }
 
     const order = updatedData
+    const subtotal = order.items?.reduce((sum, item) => sum + ((item.discount_price || item.price) * item.quantity), 0) || 0
 
     // 2. If status is updated to 'Confirmed', send order confirmation email via Resend
     if (status === 'Confirmed' && order && order.email) {
@@ -90,13 +91,14 @@ export async function POST(req) {
                         <tr style="border-bottom: 1px solid #f5f5f5;">
                           <td style="padding: 12px 0; color: #222222; font-weight: 500;">${item.name}</td>
                           <td style="padding: 12px 0; text-align: center; color: #666666;">${item.quantity}</td>
-                          <td style="padding: 12px 0; text-align: right; font-weight: bold; color: #111111;">৳${item.price * item.quantity}</td>
+                          <td style="padding: 12px 0; text-align: right; font-weight: bold; color: #111111;">৳${(item.discount_price || item.price) * item.quantity}</td>
                         </tr>
                       `).join('')}
                     </tbody>
                   </table>
                   
                   <div style="margin-top: 30px; text-align: right; font-size: 14px; line-height: 1.6;">
+                    <p style="margin: 5px 0; color: #666666;">Subtotal: ৳${subtotal}</p>
                     ${order.discount_amount > 0 ? `
                       <p style="margin: 5px 0; color: #ef4444;">Discount: -৳${order.discount_amount}</p>
                     ` : ''}
