@@ -158,7 +158,7 @@ export default function OrderConfirmationPage({ params, searchParams }) {
                   <span className="text-zinc-400 font-light">
                     {item.name} <strong className="text-zinc-500 text-xs">x{item.quantity}</strong>
                   </span>
-                  <span className="text-white font-medium">৳{item.price * item.quantity}</span>
+                  <span className="text-white font-medium">৳{(item.discount_price || item.price) * item.quantity}</span>
                 </div>
               ))}
               {order.shipping_cost !== undefined && order.shipping_cost !== null && (

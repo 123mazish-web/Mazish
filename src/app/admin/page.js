@@ -68,46 +68,53 @@ export default function AdminPage() {
   async function loadData(isInitial = false) {
     if (isInitial) setLoading(true)
     setMessage('')
-    try {
-      // 1. Load orders
-      const { data: dbOrders, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
+    
+    const queryTimeout = (promise, ms = 3500) => {
+      let timeoutId;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Timeout')), ms);
+      });
+      return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+    };
 
+    try {
+      // Execute all database fetches in parallel to prevent sequential timeout lag
+      const [ordersRes, productsRes, promosRes, catsRes] = await Promise.allSettled([
+        queryTimeout(supabase.from('orders').select('*').order('created_at', { ascending: false })),
+        queryTimeout(getProducts()),
+        queryTimeout(supabase.from('promo_codes').select('*').order('created_at', { ascending: false })),
+        queryTimeout(supabase.from('categories').select('*').order('name', { ascending: true }))
+      ])
+
+      // 1. Process orders
       const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
-      if (dbOrders && !ordersError) {
+      if (ordersRes.status === 'fulfilled' && ordersRes.value && ordersRes.value.data && !ordersRes.value.error) {
+        const dbOrders = ordersRes.value.data
         setOrders([...dbOrders, ...localOrders.filter(lo => !dbOrders.find(doObj => doObj.id === lo.id))])
       } else {
         setOrders(localOrders)
       }
 
-      // 2. Load products
-      const dbProducts = await getProducts()
-      setProducts(dbProducts)
+      // 2. Process products
+      if (productsRes.status === 'fulfilled' && productsRes.value) {
+        setProducts(productsRes.value)
+      }
 
-      // 3. Load Promo Codes
-      const { data: dbPromos, error: promosError } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .order('created_at', { ascending: false })
-
+      // 3. Process Promo Codes
       const localPromos = JSON.parse(localStorage.getItem('mazish_promos') || '[]')
-      if (dbPromos && !promosError) {
+      if (promosRes.status === 'fulfilled' && promosRes.value && promosRes.value.data && !promosRes.value.error) {
+        const dbPromos = promosRes.value.data
         setPromoCodes([...dbPromos, ...localPromos.filter(lp => !dbPromos.find(dp => dp.code === lp.code))])
       } else {
         setPromoCodes(localPromos)
       }
 
-      // 4. Load Categories
-      const { data: dbCats, error: catsError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
-
+      // 4. Process Categories
       const localCats = JSON.parse(localStorage.getItem('mazish_categories') || '[]')
       const defaultCats = [{ name: 'Sunglasses' }, { name: 'Apparel' }, { name: 'Accessories' }, { name: 'FIFA Special Edition' }]
-      if (dbCats && !catsError) {
+      
+      if (catsRes.status === 'fulfilled' && catsRes.value && catsRes.value.data && !catsRes.value.error) {
+        const dbCats = catsRes.value.data
         const merged = [...dbCats]
         localCats.concat(defaultCats).forEach(c => {
           if (!merged.find(item => item.name === c.name)) {
@@ -126,7 +133,7 @@ export default function AdminPage() {
       }
 
     } catch (e) {
-      console.error(e)
+      console.error("Dashboard loading error:", e)
     }
     setLoading(false)
   }

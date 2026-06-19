@@ -155,7 +155,7 @@ export default function Header() {
                             <div>
                               <div className="flex justify-between text-base font-semibold text-white">
                                 <h3 className="line-clamp-1">{item.name}</h3>
-                                <p className="ml-4 text-amber-500">৳{item.price}</p>
+                                <p className="ml-4 text-amber-500">৳{item.discount_price || item.price}</p>
                               </div>
                               <p className="mt-1 text-xs text-zinc-500">Sunglasses</p>
                             </div>

@@ -62,7 +62,7 @@ export function CartProvider({ children }) {
   }
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
-  const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  const cartTotal = cart.reduce((total, item) => total + ((item.discount_price || item.price) * item.quantity), 0)
 
   return (
     <CartContext.Provider

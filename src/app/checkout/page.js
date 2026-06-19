@@ -354,7 +354,7 @@ export default function CheckoutPage() {
                         <p className="text-xs text-zinc-500 font-light">Qty: {item.quantity}</p>
                       </div>
                     </div>
-                    <span className="text-zinc-400 font-medium">৳{item.price * item.quantity}</span>
+                    <span className="text-zinc-400 font-medium">৳{(item.discount_price || item.price) * item.quantity}</span>
                   </div>
                 ))}
               </div>

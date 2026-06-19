@@ -33,6 +33,7 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       className={`${cormorant.variable} ${montserrat.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans bg-zinc-950 text-zinc-100 selection:bg-amber-500 selection:text-zinc-950">
         {/* Google Tag Manager (Script Injection via next/script) */}

@@ -1,13 +1,24 @@
 import { supabase } from './supabase'
 import { DEFAULT_PRODUCTS } from './products'
 
+// Helper to prevent database queries from hanging indefinitely
+async function withTimeout(promise, timeoutMs = 4000) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Database query timeout')), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
+
 export async function getProducts() {
   let products = [];
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await withTimeout(
+      supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
+    )
 
     if (error || !data || data.length === 0) {
       products = [...DEFAULT_PRODUCTS]
@@ -47,11 +58,13 @@ export async function getProductById(id) {
   let product = null
 
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const { data, error } = await withTimeout(
+      supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single()
+    )
 
     if (!error && data) {
       product = data
@@ -83,11 +96,13 @@ export async function getProductById(id) {
 
 export async function createOrder(orderData) {
   try {
-    const { data, error } = await supabase
-      .from('orders')
-      .insert([orderData])
-      .select()
-      .single()
+    const { data, error } = await withTimeout(
+      supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single()
+    )
 
     if (error) {
       console.error("Failed to insert order into Supabase:", error)
@@ -112,10 +127,12 @@ export async function createOrder(orderData) {
 
 export async function getCategories() {
   try {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name', { ascending: true })
+    const { data, error } = await withTimeout(
+      supabase
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true })
+    )
 
     if (error || !data || data.length === 0) {
       return [{ name: 'Sunglasses' }, { name: 'Apparel' }, { name: 'Accessories' }]
