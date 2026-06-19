@@ -45,7 +45,7 @@ export async function POST(req) {
               'Authorization': `Bearer ${resendKey}`
             },
             body: JSON.stringify({
-              from: 'Mazish <orders@mazish.com>',
+              from: 'Mazish <orders@mazish.shop>',
               to: [order.email],
               subject: `Order Confirmed! - Mazish Order #${order.id.slice(0, 8).toUpperCase()}`,
               html: `

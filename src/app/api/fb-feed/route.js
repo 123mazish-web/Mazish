@@ -4,7 +4,7 @@ import { getProducts } from '@/lib/db'
 export async function GET(request) {
   try {
     const products = await getProducts()
-    const host = request.headers.get('host') || 'mazish.com'
+    const host = request.headers.get('host') || 'mazish.shop'
     const protocol = request.headers.get('x-forwarded-proto') || 'https'
     const baseUrl = `${protocol}://${host}`
 
