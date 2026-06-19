@@ -48,6 +48,32 @@ export default function OrderConfirmationPage({ params, searchParams }) {
     }
   }, [id, isDemo])
 
+  useEffect(() => {
+    if (order && typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ ecommerce: null })
+      window.dataLayer.push({
+        event: 'purchase',
+        ecommerce: {
+          transaction_id: order.id,
+          value: parseFloat(order.total_amount || 0),
+          tax: 0,
+          shipping: parseFloat(order.shipping_cost || 0),
+          currency: 'BDT',
+          coupon: order.promo_code || undefined,
+          items: order.items?.map(item => ({
+            item_id: item.id,
+            item_name: item.name,
+            price: item.discount_price || item.price,
+            item_category: item.category,
+            item_gender: item.gender,
+            quantity: item.quantity
+          }))
+        }
+      })
+    }
+  }, [order])
+
   if (loading) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-zinc-950">

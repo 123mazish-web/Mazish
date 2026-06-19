@@ -34,6 +34,28 @@ export default function ProductPage({ params }) {
     loadProduct()
   }, [id])
 
+  useEffect(() => {
+    if (product && typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ ecommerce: null })
+      window.dataLayer.push({
+        event: 'view_item',
+        ecommerce: {
+          currency: 'BDT',
+          value: product.discount_price || product.price,
+          items: [{
+            item_id: product.id,
+            item_name: product.name,
+            price: product.discount_price || product.price,
+            item_category: product.category,
+            item_gender: product.gender,
+            quantity: 1
+          }]
+        }
+      })
+    }
+  }, [product])
+
   if (loading) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-zinc-950">

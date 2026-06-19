@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -32,6 +32,29 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState(null)
   const [promoError, setPromoError] = useState('')
   const [promoLoading, setPromoLoading] = useState(false)
+
+  // Trigger GA4 begin_checkout event on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && cart && cart.length > 0) {
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ ecommerce: null })
+      window.dataLayer.push({
+        event: 'begin_checkout',
+        ecommerce: {
+          currency: 'BDT',
+          value: cartTotal,
+          items: cart.map(item => ({
+            item_id: item.id,
+            item_name: item.name,
+            price: item.discount_price || item.price,
+            item_category: item.category,
+            item_gender: item.gender,
+            quantity: item.quantity
+          }))
+        }
+      })
+    }
+  }, [])
 
   if (cart.length === 0) {
     return (
