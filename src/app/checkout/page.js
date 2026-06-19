@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingBag, ChevronRight, CheckCircle, Shield, Tag, X } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { createOrder } from '@/lib/db'
@@ -345,8 +346,8 @@ export default function CheckoutPage() {
                 {cart.map((item) => (
                   <div key={item.id} className="flex py-4 justify-between items-center text-sm">
                     <div className="flex items-center space-x-3">
-                      <div className="h-12 w-12 rounded border border-zinc-850 bg-zinc-950 overflow-hidden flex-shrink-0">
-                        <img src={item.images?.[0]} alt={item.name} className="h-full w-full object-cover" />
+                      <div className="h-12 w-12 rounded border border-zinc-850 bg-zinc-950 overflow-hidden flex-shrink-0 relative">
+                        <Image src={item.images?.[0]} alt={item.name} fill className="object-cover" />
                       </div>
                       <div>
                         <h4 className="text-white font-medium line-clamp-1">{item.name}</h4>

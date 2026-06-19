@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingBag, Search, Tag, SlidersHorizontal } from 'lucide-react'
 import { getProducts, getCategories } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
@@ -163,10 +164,11 @@ export default function ShopPage() {
               >
                 {/* Image */}
                 <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-zinc-950">
-                  <img
+                  <Image
                     src={product.images?.[0]}
                     alt={product.name}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   {product.discount_price && (
                     <span className="absolute top-4 left-4 bg-amber-500 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">

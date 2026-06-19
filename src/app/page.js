@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingBag, Star, Shield, Truck, RotateCcw, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
 import { getProducts } from '@/lib/db'
@@ -81,11 +82,13 @@ export default function HomePage() {
               index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           >
-            <Link href="/shop" className="block w-full h-full cursor-pointer">
-              <img
+            <Link href="/shop" className="block w-full h-full cursor-pointer relative">
+              <Image
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-full object-cover"
+                fill
+                priority={index === 0}
+                className="object-cover"
               />
             </Link>
           </div>
@@ -170,8 +173,8 @@ export default function HomePage() {
                   Handcrafted acetate frame with signature green and gold detailing. Fitted with premium polarized golden-yellow gradient lenses.
                 </p>
               </div>
-              <Link href="/product/fifa-brazil" className="block my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900 cursor-pointer">
-                <img src="/images/Brazil1.jpg" alt="Brazil Glass" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Link href="/product/fifa-brazil" className="block my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900 cursor-pointer relative">
+                <Image src="/images/Brazil1.jpg" alt="Brazil Glass" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
               </Link>
               <div className="flex items-center justify-between">
                 <div>
@@ -199,8 +202,8 @@ export default function HomePage() {
                   Pristine sky-blue and white accents, custom handcrafted frame offering unmatched comfort and high-contrast polarized lenses.
                 </p>
               </div>
-              <Link href="/product/fifa-argentina" className="block my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900 cursor-pointer">
-                <img src="/images/Argentina1.jpg" alt="Argentina Glass" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Link href="/product/fifa-argentina" className="block my-8 aspect-video overflow-hidden rounded-lg bg-zinc-950 border border-zinc-900 cursor-pointer relative">
+                <Image src="/images/Argentina1.jpg" alt="Argentina Glass" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
               </Link>
               <div className="flex items-center justify-between">
                 <div>
@@ -241,10 +244,11 @@ export default function HomePage() {
                 >
                   {/* Image */}
                   <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-zinc-950">
-                    <img
+                    <Image
                       src={product.images?.[0]}
                       alt={product.name}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     {product.discount_price && (
                       <span className="absolute top-4 left-4 bg-amber-500 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">

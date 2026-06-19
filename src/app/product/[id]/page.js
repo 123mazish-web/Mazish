@@ -2,6 +2,7 @@
 
 import React, { use, useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, ShoppingBag, Truck, Shield, CheckCircle } from 'lucide-react'
 import { getProductById } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
@@ -74,10 +75,11 @@ export default function ProductPage({ params }) {
           {/* Left Column - Product Image & Gallery */}
           <div className="space-y-4">
             <div className="relative overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-900/20 aspect-square flex items-center justify-center">
-              <img
+              <Image
                 src={product.images?.[activeImageIndex] || product.images?.[0]}
                 alt={product.name}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
               />
               {product.discount_price && (
                 <span className="absolute top-6 left-6 bg-amber-500 text-zinc-950 font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-lg">
@@ -93,11 +95,11 @@ export default function ProductPage({ params }) {
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-950/40 transition-all ${
+                    className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-950/40 transition-all relative ${
                       idx === activeImageIndex ? 'border-amber-500' : 'border-zinc-900 hover:border-zinc-800'
                     }`}
                   >
-                    <img src={img} alt={`${product.name} View ${idx + 1}`} className="h-full w-full object-cover" />
+                    <Image src={img} alt={`${product.name} View ${idx + 1}`} fill className="object-cover" />
                   </button>
                 ))}
               </div>

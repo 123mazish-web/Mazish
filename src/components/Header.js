@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingBag, Menu, X, Trash2, Plus, Minus, ArrowRight } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 
@@ -142,11 +143,12 @@ export default function Header() {
                       cart.map((item) => (
                         <div key={item.id} className="flex py-4 border-b border-zinc-850 last:border-b-0">
                           {/* Image */}
-                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950">
-                            <img
-                              src={item.images?.[0] || 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=150'}
+                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 relative">
+                            <Image
+                              src={item.images?.[0] || '/images/Sunglass1.png'}
                               alt={item.name}
-                              className="h-full w-full object-cover"
+                              fill
+                              className="object-cover"
                             />
                           </div>
 
