@@ -12,8 +12,16 @@ export async function POST(request) {
     // 1. Fetch order details
     let order = null
     if (isDemo) {
-      const savedOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
-      order = savedOrders.find(o => o.id === orderId)
+      // Mock order data for client-side demo orders to avoid referencing localStorage on the server
+      order = {
+        id: orderId,
+        customer_name: 'Demo Customer',
+        phone: '01700000000',
+        delivery_address: 'Demo Address',
+        payment_method: 'COD',
+        total_amount: 1500,
+        items: []
+      }
     } else {
       const { data, error } = await supabase
         .from('orders')
@@ -39,7 +47,7 @@ export async function POST(request) {
     let consignmentId = `SF-${Math.floor(100000 + Math.random() * 900000)}`
     let trackingCode = `STEADFAST-${order.phone.slice(-4)}-${Math.floor(1000 + Math.random() * 9000)}`
 
-    if (!isMock) {
+    if (!isMock && !isDemo) {
       try {
         const response = await fetch('https://portal.steadfast.com.bd/api/v1/create_order', {
           method: 'POST',
@@ -75,22 +83,8 @@ export async function POST(request) {
       }
     }
 
-    // 3. Update order in DB
-    if (isDemo) {
-      const savedOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
-      const updatedOrders = savedOrders.map(o => {
-        if (o.id === orderId) {
-          return {
-            ...o,
-            status: 'Shipped',
-            steadfast_consignment_id: consignmentId,
-            steadfast_tracking_code: trackingCode
-          }
-        }
-        return o
-      })
-      localStorage.setItem('mazish_orders', JSON.stringify(updatedOrders))
-    } else {
+    // 3. Update order in DB if it is a live DB order
+    if (!isDemo) {
       const { error } = await supabase
         .from('orders')
         .update({
@@ -107,7 +101,7 @@ export async function POST(request) {
       success: true,
       consignmentId,
       trackingCode,
-      message: isMock ? 'Order mocked as shipped (Sandbox Mode)' : 'Order successfully dispatched via Steadfast Courier'
+      message: (isMock || isDemo) ? 'Order mocked as shipped (Sandbox Mode)' : 'Order successfully dispatched via Steadfast Courier'
     })
   } catch (error) {
     console.error("API error in Steadfast dispatch:", error)

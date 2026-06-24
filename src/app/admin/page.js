@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getProducts } from '@/lib/db'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
-import { Package, ClipboardList, PlusCircle, CheckCircle, Truck, Eye, RefreshCw, Tag, Trash2, Search, DollarSign, ShoppingCart, Percent, Lock, ListFilter } from 'lucide-react'
+import { Package, ClipboardList, PlusCircle, CheckCircle, Truck, Eye, RefreshCw, Tag, Trash2, Search, DollarSign, ShoppingCart, Percent, Lock, ListFilter, X } from 'lucide-react'
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage] = useState('')
+  const [selectedOrderForModal, setSelectedOrderForModal] = useState(null)
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -228,6 +229,15 @@ export default function AdminPage() {
       const result = await dispatchResponse.json()
       if (result.success) {
         setMessage(result.message || 'Successfully dispatched to Steadfast!')
+        if (isDemo) {
+          const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+          const updated = localOrders.map(o => 
+            o.id === orderId 
+              ? { ...o, status: 'Shipped', steadfast_consignment_id: result.consignmentId, steadfast_tracking_code: result.trackingCode } 
+              : o
+          )
+          localStorage.setItem('mazish_orders', JSON.stringify(updated))
+        }
         loadData()
       } else {
         setMessage(`Steadfast Dispatch Error: ${result.error}`)
@@ -776,14 +786,23 @@ export default function AdminPage() {
                             )}
 
                             {order.status === 'Confirmed' && (
-                              <button
-                                onClick={() => handleDispatchSteadfast(order.id)}
-                                disabled={actionLoading === order.id + '-steadfast'}
-                                className="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
-                              >
-                                <Truck size={12} />
-                                Steadfast Dispatch
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleDispatchSteadfast(order.id)}
+                                  disabled={actionLoading === order.id + '-steadfast'}
+                                  className="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+                                >
+                                  <Truck size={12} />
+                                  Steadfast Dispatch
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateStatus(order.id, order.status, 'Shipped')}
+                                  disabled={actionLoading === order.id}
+                                  className="text-zinc-300 hover:text-white font-bold text-[10px] tracking-wider uppercase border border-zinc-800 bg-zinc-950 px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+                                >
+                                  Mark Shipped
+                                </button>
+                              </>
                             )}
 
                             {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
@@ -794,6 +813,14 @@ export default function AdminPage() {
                                 Mark Delivered
                               </button>
                             )}
+
+                            <button
+                              onClick={() => setSelectedOrderForModal(order)}
+                              className="inline-flex items-center gap-1.5 text-amber-500 hover:text-amber-400 font-medium text-xs border border-amber-500/25 hover:border-amber-500/40 bg-zinc-950 px-3 py-1.5 rounded-full transition-colors"
+                            >
+                              <Eye size={12} />
+                              View Details
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1171,6 +1198,159 @@ export default function AdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+        {/* Order Details Modal */}
+        {selectedOrderForModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+                <div>
+                  <h3 className="font-luxury text-lg text-white">Order Details</h3>
+                  <p className="text-[10px] font-mono text-zinc-500 mt-1 uppercase tracking-wider">ID: {selectedOrderForModal.id}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrderForModal(null)}
+                  className="p-1.5 hover:bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 overflow-y-auto space-y-6 flex-1 text-sm font-sans">
+                {/* Status and Method Banner */}
+                <div className="grid grid-cols-2 gap-4 bg-zinc-950/50 p-4 rounded-xl border border-zinc-850">
+                  <div>
+                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Status</span>
+                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded mt-1.5 ${
+                      selectedOrderForModal.status === 'Shipped' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      selectedOrderForModal.status === 'Confirmed' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' :
+                      selectedOrderForModal.status === 'Cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                      'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    }`}>
+                      {selectedOrderForModal.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Payment</span>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-zinc-800 text-zinc-300">
+                        {selectedOrderForModal.payment_method}
+                      </span>
+                      {selectedOrderForModal.payment_details && selectedOrderForModal.payment_details !== 'COD' && selectedOrderForModal.payment_details !== 'N/A' && (
+                        <span className="text-[10px] text-zinc-400 font-mono bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-850">
+                          {selectedOrderForModal.payment_details}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Details */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500 border-b border-zinc-800 pb-2">Customer Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Name</span>
+                      <p className="text-white font-medium mt-0.5">{selectedOrderForModal.customer_name}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Phone</span>
+                      <p className="text-white font-medium mt-0.5 select-all">{selectedOrderForModal.phone}</p>
+                    </div>
+                    {selectedOrderForModal.email && (
+                      <div className="md:col-span-2">
+                        <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block">Email</span>
+                        <p className="text-white mt-0.5 select-all">{selectedOrderForModal.email}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Address Section */}
+                <div className="space-y-3 bg-zinc-950/40 p-4 rounded-xl border border-zinc-850/80">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Full Delivery Address</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedOrderForModal.delivery_address);
+                        setMessage("Address copied to clipboard!");
+                        setTimeout(() => setMessage(''), 3000);
+                      }}
+                      className="text-[10px] text-amber-500 hover:text-amber-400 uppercase tracking-wider font-semibold underline transition-colors"
+                    >
+                      Copy Address
+                    </button>
+                  </div>
+                  <p className="text-white font-light bg-zinc-950/80 p-3 rounded-lg border border-zinc-900 leading-relaxed select-all">
+                    {selectedOrderForModal.delivery_address}
+                  </p>
+                </div>
+
+                {/* Ordered Items */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-500 border-b border-zinc-800 pb-2">Items Ordered</h4>
+                  <div className="bg-zinc-950/30 rounded-xl border border-zinc-900 divide-y divide-zinc-900">
+                    {selectedOrderForModal.items?.map((item, idx) => (
+                      <div key={idx} className="p-3.5 flex justify-between items-center text-xs">
+                        <div>
+                          <p className="text-white font-medium">{item.name}</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">Category: {item.category || 'Sunglasses'} | Quantity: {item.quantity}</p>
+                        </div>
+                        <p className="text-white font-semibold">৳{(item.discount_price || item.price) * item.quantity}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pricing Summary */}
+                <div className="bg-zinc-950/50 p-4 rounded-xl border border-zinc-850 space-y-2.5 text-xs text-zinc-400">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="text-white">৳{selectedOrderForModal.items?.reduce((sum, item) => sum + ((item.discount_price || item.price) * item.quantity), 0) || 0}</span>
+                  </div>
+                  {selectedOrderForModal.discount_amount > 0 && (
+                    <div className="flex justify-between text-red-400">
+                      <span>Discount {selectedOrderForModal.promo_code ? `(${selectedOrderForModal.promo_code})` : ''}</span>
+                      <span>-৳{selectedOrderForModal.discount_amount}</span>
+                    </div>
+                  )}
+                  {selectedOrderForModal.shipping_cost !== undefined && (
+                    <div className="flex justify-between">
+                      <span>Shipping Cost</span>
+                      <span className="text-white">৳{selectedOrderForModal.shipping_cost}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-bold text-white border-t border-zinc-850 pt-2.5">
+                    <span className="text-amber-500">Grand Total</span>
+                    <span className="text-amber-500">৳{selectedOrderForModal.total_amount}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-zinc-800 bg-zinc-950/50 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    const fullText = `Order ID: ${selectedOrderForModal.id}\nCustomer Name: ${selectedOrderForModal.customer_name}\nPhone: ${selectedOrderForModal.phone}\nAddress: ${selectedOrderForModal.delivery_address}\nItems: ${selectedOrderForModal.items?.map(i => `${i.name} (${i.quantity})`).join(', ')}\nTotal: ৳${selectedOrderForModal.total_amount}`;
+                    navigator.clipboard.writeText(fullText);
+                    setMessage("All order details copied to clipboard!");
+                    setTimeout(() => setMessage(''), 3000);
+                  }}
+                  className="border border-zinc-800 hover:border-zinc-700 bg-zinc-900 text-zinc-300 font-semibold uppercase tracking-wider text-[10px] px-5 py-2.5 rounded-full transition-all"
+                >
+                  Copy All Details
+                </button>
+                <button
+                  onClick={() => setSelectedOrderForModal(null)}
+                  className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold uppercase tracking-wider text-[10px] px-6 py-2.5 rounded-full transition-all"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}
