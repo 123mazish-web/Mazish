@@ -34,9 +34,6 @@ export default function Footer() {
               <li>
                 <Link href="/about" className="hover:text-amber-500 transition-colors">Our Story</Link>
               </li>
-              <li>
-                <Link href="/admin" className="hover:text-amber-500 text-xs opacity-50 transition-colors">Admin Dashboard</Link>
-              </li>
             </ul>
           </div>
 

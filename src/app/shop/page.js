@@ -170,11 +170,15 @@ export default function ShopPage() {
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  {product.discount_price && (
+                   {product.stock <= 0 ? (
+                    <span className="absolute top-4 left-4 bg-red-600 text-white font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">
+                      Sold Out
+                    </span>
+                  ) : product.discount_price ? (
                     <span className="absolute top-4 left-4 bg-amber-500 text-zinc-950 font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">
                       Special Offer
                     </span>
-                  )}
+                  ) : null}
                 </Link>
 
                 {/* Details */}
@@ -210,15 +214,21 @@ export default function ShopPage() {
                       )}
                     </div>
 
-                    <button
-                      onClick={() => {
-                        addToCart(product, 1)
-                      }}
-                      className="flex items-center justify-center p-2 rounded-full border border-zinc-800 bg-zinc-950 hover:bg-amber-500 hover:text-zinc-950 transition-colors"
-                      aria-label="Add to cart"
-                    >
-                      <ShoppingBag size={16} />
-                    </button>
+                    {product.stock <= 0 ? (
+                      <span className="text-[9px] font-bold text-red-400 bg-red-950/30 border border-red-500/10 px-2.5 py-1 rounded uppercase tracking-wider">
+                        Sold Out
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          addToCart(product, 1)
+                        }}
+                        className="flex items-center justify-center p-2 rounded-full border border-zinc-800 bg-zinc-950 hover:bg-amber-500 hover:text-zinc-950 transition-colors"
+                        aria-label="Add to cart"
+                      >
+                        <ShoppingBag size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

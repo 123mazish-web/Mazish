@@ -181,21 +181,32 @@ export default function ProductPage({ params }) {
 
               {/* Add To Cart Trigger */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-3 bg-amber-500 text-zinc-950 font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-amber-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
-                >
-                  <ShoppingBag size={16} className="stroke-[2.5]" />
-                  {added ? 'Added to Selection' : 'Add to Selection'}
-                </button>
+                {(product.stock !== undefined ? product.stock : 20) <= 0 ? (
+                  <button
+                    disabled
+                    className="flex-1 flex items-center justify-center gap-3 bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold uppercase tracking-widest text-xs py-4 rounded-full cursor-not-allowed"
+                  >
+                    Sold Out
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAddToCart}
+                      className="flex-1 flex items-center justify-center gap-3 bg-amber-500 text-zinc-950 font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-amber-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+                    >
+                      <ShoppingBag size={16} className="stroke-[2.5]" />
+                      {added ? 'Added to Selection' : 'Add to Selection'}
+                    </button>
 
-                <Link
-                  href="/checkout"
-                  onClick={() => addToCart(product, quantity)}
-                  className="flex-1 flex items-center justify-center border border-zinc-800 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-white hover:text-zinc-950 transition-all duration-300"
-                >
-                  Instant Buy Now
-                </Link>
+                    <Link
+                      href="/checkout"
+                      onClick={() => addToCart(product, quantity)}
+                      className="flex-1 flex items-center justify-center border border-zinc-800 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-white hover:text-zinc-950 transition-all duration-300"
+                    >
+                      Instant Buy Now
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 

@@ -11,6 +11,7 @@ export default function AdminPage() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' })
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
 
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
@@ -54,7 +55,7 @@ export default function AdminPage() {
   const [newCategoryName, setNewCategoryName] = useState('')
 
   useEffect(() => {
-    const token = sessionStorage.getItem('mazish_admin_token')
+    const token = localStorage.getItem('mazish_admin_token') || sessionStorage.getItem('mazish_admin_token')
     if (token === 'mazish-secure-admin-token') {
       setIsAuthenticated(true)
       // Optimistically load cached local orders
@@ -153,7 +154,11 @@ export default function AdminPage() {
 
       const result = await res.json()
       if (result.success) {
-        sessionStorage.setItem('mazish_admin_token', result.token)
+        if (rememberMe) {
+          localStorage.setItem('mazish_admin_token', result.token)
+        } else {
+          sessionStorage.setItem('mazish_admin_token', result.token)
+        }
         setIsAuthenticated(true)
         // Optimistically load local orders before trigger
         const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
@@ -171,6 +176,7 @@ export default function AdminPage() {
 
   const handleLogout = () => {
     sessionStorage.removeItem('mazish_admin_token')
+    localStorage.removeItem('mazish_admin_token')
     setIsAuthenticated(false)
     setLoginForm({ username: '', password: '' })
   }
@@ -244,6 +250,40 @@ export default function AdminPage() {
       }
     } catch (err) {
       setMessage(`Connection failed: ${err.message}`)
+    }
+    setActionLoading(null)
+  }
+
+  const handleToggleStock = async (product) => {
+    setActionLoading(product.id + '-stock')
+    setMessage('')
+    try {
+      const targetStock = product.stock > 0 ? 0 : 20
+      const isLocal = typeof product.id === 'string' && (product.id.startsWith('p-') || product.id.startsWith('sunglasses-') || product.id.startsWith('fifa-'))
+
+      if (isLocal) {
+        const localProducts = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
+        const updated = localProducts.map(p => p.id === product.id ? { ...p, stock: targetStock } : p)
+        localStorage.setItem('mazish_custom_products', JSON.stringify(updated))
+        setMessage(`Stock status toggled locally for ${product.name}!`)
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .update({ stock: targetStock })
+          .eq('id', product.id)
+
+        if (error) {
+          const localProducts = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
+          const updated = localProducts.map(p => p.id === product.id ? { ...p, stock: targetStock } : p)
+          localStorage.setItem('mazish_custom_products', JSON.stringify(updated))
+          setMessage(`Stock status toggled locally (Sandbox Mode): ${product.name}`)
+        } else {
+          setMessage(`Stock status successfully updated in Supabase for ${product.name}!`)
+        }
+      }
+      loadData()
+    } catch (err) {
+      setMessage(`Error: ${err.message}`)
     }
     setActionLoading(null)
   }
@@ -455,7 +495,9 @@ export default function AdminPage() {
     .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0)
 
   const activePromoCount = promoCodes.filter(p => p.is_active).length
-  const averageOrderValue = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0
+  const totalItemsSold = orders
+    .filter(o => o.status !== 'Cancelled')
+    .reduce((sum, o) => sum + (o.items?.reduce((s, item) => s + (item.quantity || 0), 0) || 0), 0)
 
   // Search & Filter Logic
   const filteredOrders = orders.filter(order => {
@@ -511,6 +553,19 @@ export default function AdminPage() {
                 className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-3 text-sm text-white focus:outline-none transition-colors"
               />
             </div>
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-800 bg-zinc-950 text-amber-500 focus:ring-amber-500 focus:ring-offset-zinc-950 transition-colors cursor-pointer"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-xs text-zinc-400 font-light cursor-pointer select-none">
+                Remember me on this device
+              </label>
+            </div>
             <button
               type="submit"
               disabled={loginLoading}
@@ -542,6 +597,22 @@ export default function AdminPage() {
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               Reload
+            </button>
+            <button
+              onClick={() => {
+                if (confirm("Are you sure you want to delete all sandbox orders and data from this browser? This will not affect live database records.")) {
+                  localStorage.removeItem('mazish_orders');
+                  localStorage.removeItem('mazish_custom_products');
+                  localStorage.removeItem('mazish_promos');
+                  localStorage.removeItem('mazish_categories');
+                  loadData();
+                  setMessage("Local sandbox test data cleared!");
+                  setTimeout(() => setMessage(''), 3000);
+                }
+              }}
+              className="border border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-zinc-950 text-xs font-semibold uppercase tracking-wider text-red-400 px-4 py-2 rounded-full transition-all"
+            >
+              Clear Sandbox Data
             </button>
             <button
               onClick={handleLogout}
@@ -576,14 +647,14 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* AOV */}
+          {/* Items Sold */}
           <div className="bg-zinc-900/30 border border-zinc-900/40 p-6 rounded-2xl flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Avg Order Value</span>
-              <p className="text-2xl font-bold text-white">৳{averageOrderValue}</p>
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Items Sold</span>
+              <p className="text-2xl font-bold text-white">{totalItemsSold}</p>
             </div>
             <div className="p-3.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-full">
-              <Percent size={20} />
+              <Package size={20} />
             </div>
           </div>
 
@@ -680,7 +751,7 @@ export default function AdminPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {['All', 'Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
+                {['All', 'Pending', 'Confirmed', 'Shipped', 'Delivered', 'Returned', 'Cancelled'].map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
@@ -765,6 +836,8 @@ export default function AdminPage() {
                             order.status === 'Shipped' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
                             order.status === 'Confirmed' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' :
                             order.status === 'Cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                            order.status === 'Returned' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                            order.status === 'Delivered' ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' :
                             'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           }`}>
                             {order.status}
@@ -805,12 +878,21 @@ export default function AdminPage() {
                               </>
                             )}
 
-                            {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
+                            {order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Returned' && (
                               <button
                                 onClick={() => handleUpdateStatus(order.id, order.status, 'Delivered')}
                                 className="text-emerald-400 hover:text-emerald-300 font-medium text-xs border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 rounded-full"
                               >
                                 Mark Delivered
+                              </button>
+                            )}
+
+                            {order.status !== 'Cancelled' && order.status !== 'Returned' && (
+                              <button
+                                onClick={() => handleUpdateStatus(order.id, order.status, 'Returned')}
+                                className="text-orange-400 hover:text-orange-300 font-medium text-xs border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 rounded-full"
+                              >
+                                Mark Returned
                               </button>
                             )}
 
@@ -853,26 +935,39 @@ export default function AdminPage() {
                     <span className="text-amber-500 font-bold">৳{product.discount_price || product.price}</span>
                     {product.discount_price && <span className="text-zinc-600 line-through text-xs">৳{product.price}</span>}
                   </div>
-                  <button
-                    onClick={() => {
-                      setEditingProduct(product)
-                      setNewProduct({
-                        name: product.name,
-                        description: product.description || '',
-                        price: product.price.toString(),
-                        discount_price: product.discount_price ? product.discount_price.toString() : '',
-                        image_url: product.images?.[0] || '/images/Sunglass1.png',
-                        category: product.category,
-                        gender: product.gender || 'Unisex',
-                        stock: product.stock || 20,
-                        is_featured: product.is_featured || false
-                      })
-                      setActiveTab('new-product')
-                    }}
-                    className="text-[10px] font-semibold uppercase tracking-wider text-amber-500 hover:underline"
-                  >
-                    Edit
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleToggleStock(product)}
+                      disabled={actionLoading === product.id + '-stock'}
+                      className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border transition-all ${
+                        (product.stock !== undefined ? product.stock : 20) > 0 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500 hover:text-zinc-950' 
+                          : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500 hover:text-white'
+                      }`}
+                    >
+                      {(product.stock !== undefined ? product.stock : 20) > 0 ? 'In Stock' : 'Sold Out'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingProduct(product)
+                        setNewProduct({
+                          name: product.name,
+                          description: product.description || '',
+                          price: product.price.toString(),
+                          discount_price: product.discount_price ? product.discount_price.toString() : '',
+                          image_url: product.images?.[0] || '/images/Sunglass1.png',
+                          category: product.category,
+                          gender: product.gender || 'Unisex',
+                          stock: product.stock !== undefined ? product.stock : 20,
+                          is_featured: product.is_featured || false
+                        })
+                        setActiveTab('new-product')
+                      }}
+                      className="text-[10px] font-semibold uppercase tracking-wider text-amber-500 hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1229,6 +1324,8 @@ export default function AdminPage() {
                       selectedOrderForModal.status === 'Shipped' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
                       selectedOrderForModal.status === 'Confirmed' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' :
                       selectedOrderForModal.status === 'Cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                      selectedOrderForModal.status === 'Returned' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                      selectedOrderForModal.status === 'Delivered' ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' :
                       'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     }`}>
                       {selectedOrderForModal.status}
