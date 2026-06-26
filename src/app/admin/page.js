@@ -17,11 +17,28 @@ export default function AdminPage() {
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
   const [promoCodes, setPromoCodes] = useState([])
   const [categories, setCategories] = useState([])
-  const [activeTab, setActiveTab] = useState('orders') // 'orders', 'products', 'new-product', 'promo-codes', 'categories'
+  const [activeTab, setActiveTab] = useState('orders') // 'orders', 'products', 'new-product', 'promo-codes', 'categories', 'manual-order'
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage] = useState('')
   const [selectedOrderForModal, setSelectedOrderForModal] = useState(null)
+  const [showManualOrderModal, setShowManualOrderModal] = useState(false)
+  const [editingManualOrder, setEditingManualOrder] = useState(null)
+  const [newManualOrder, setNewManualOrder] = useState({
+    customer_name: '',
+    phone: '',
+    email: '',
+    delivery_address: '',
+    payment_method: 'COD',
+    payment_details: 'COD',
+    shipping_cost: 0,
+    discount_amount: 0,
+    total_amount: '',
+    status: 'Pending',
+    created_at: '',
+    note: ''
+  })
+  const [manualSelectedProducts, setManualSelectedProducts] = useState([])
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -288,6 +305,160 @@ export default function AdminPage() {
     setActionLoading(null)
   }
 
+  const handleCreateManualOrder = async (e) => {
+    e.preventDefault()
+    if (!newManualOrder.customer_name || !newManualOrder.phone || !newManualOrder.delivery_address) {
+      setMessage("Please fill in customer name, phone, and delivery address.")
+      return
+    }
+
+    setActionLoading('manual-order')
+    setMessage('')
+
+    try {
+      const orderItems = manualSelectedProducts.map(({ product, quantity }) => ({
+        id: product.id,
+        name: product.name,
+        price: product.discount_price || product.price,
+        category: product.category,
+        gender: product.gender,
+        quantity: parseInt(quantity)
+      }))
+
+      const finalTotalAmount = newManualOrder.total_amount 
+        ? parseFloat(newManualOrder.total_amount) 
+        : orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + parseFloat(newManualOrder.shipping_cost || 0) - parseFloat(newManualOrder.discount_amount || 0)
+
+      const paymentDetails = `[Manual] ${newManualOrder.payment_details}`
+      const payload = {
+        customer_name: newManualOrder.customer_name,
+        phone: newManualOrder.phone,
+        email: newManualOrder.email || null,
+        delivery_address: newManualOrder.delivery_address,
+        shipping_cost: parseFloat(newManualOrder.shipping_cost || 0),
+        discount_amount: parseFloat(newManualOrder.discount_amount || 0),
+        total_amount: finalTotalAmount,
+        payment_method: newManualOrder.payment_method,
+        payment_details: newManualOrder.note ? `${paymentDetails} | Note: ${newManualOrder.note}` : paymentDetails,
+        status: newManualOrder.status,
+        items: orderItems,
+        created_at: newManualOrder.created_at ? new Date(newManualOrder.created_at).toISOString() : new Date().toISOString()
+      }
+
+      if (editingManualOrder) {
+        // Update logic
+        const orderId = editingManualOrder.id
+        const isLocal = typeof orderId === 'string' && (orderId.startsWith('manual-') || orderId.startsWith('demo-') || !orderId.includes('-'))
+
+        if (isLocal) {
+          const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+          const updated = localOrders.map(o => o.id === orderId ? { ...o, ...payload, id: orderId } : o)
+          localStorage.setItem('mazish_orders', JSON.stringify(updated))
+          setMessage("Order updated successfully in Local Storage (Sandbox Mode)!")
+        } else {
+          const res = await fetch('/api/admin/orders/manage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'UPDATE', orderId, payload })
+          })
+          const result = await res.json()
+
+          if (!result.success) {
+            console.warn("Failed to update manual order in Supabase, falling back to local storage:", result.error)
+            const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+            const updated = localOrders.map(o => o.id === orderId ? { ...o, ...payload, id: orderId } : o)
+            localStorage.setItem('mazish_orders', JSON.stringify(updated))
+            setMessage("Order updated locally (Sandbox Mode)")
+          } else {
+            setMessage("Order updated successfully in Supabase!")
+          }
+        }
+      } else {
+        // Create logic
+        const { data, error } = await supabase
+          .from('orders')
+          .insert([payload])
+          .select()
+          .single()
+
+        if (error) {
+          console.warn("Failed to insert manual order to Supabase, falling back to local storage:", error.message)
+          const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+          const mockOrder = {
+            id: `manual-${Date.now()}`,
+            ...payload
+          }
+          localOrders.push(mockOrder)
+          localStorage.setItem('mazish_orders', JSON.stringify(localOrders))
+          setMessage("Order created successfully in Local Storage (Sandbox Mode)!")
+        } else {
+          setMessage("Order created successfully in Supabase!")
+        }
+      }
+
+      // Reset form
+      setNewManualOrder({
+        customer_name: '',
+        phone: '',
+        email: '',
+        delivery_address: '',
+        payment_method: 'COD',
+        payment_details: 'COD',
+        shipping_cost: 0,
+        discount_amount: 0,
+        total_amount: '',
+        status: 'Pending',
+        created_at: new Date().toISOString().substring(0, 16),
+        note: ''
+      })
+      setManualSelectedProducts([])
+      setEditingManualOrder(null)
+      loadData()
+      setShowManualOrderModal(false)
+    } catch (err) {
+      setMessage(`Error: ${err.message}`)
+    }
+  }
+
+  const handleDeleteOrder = async (orderId) => {
+    if (!confirm("Are you sure you want to delete this order/transaction record? This action cannot be undone.")) return
+    
+    setActionLoading(orderId + '-delete')
+    setMessage('')
+
+    try {
+      const isLocal = typeof orderId === 'string' && (orderId.startsWith('manual-') || orderId.startsWith('demo-') || !orderId.includes('-'))
+
+      if (isLocal) {
+        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+        const filtered = localOrders.filter(o => o.id !== orderId)
+        localStorage.setItem('mazish_orders', JSON.stringify(filtered))
+        setMessage("Order deleted successfully from Local Storage (Sandbox Mode)!")
+      } else {
+        const res = await fetch('/api/admin/orders/manage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'DELETE', orderId })
+        })
+        const result = await res.json()
+
+        if (!result.success) {
+          console.warn("Failed to delete order from Supabase, attempting local storage deletion:", result.error)
+          const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+          const filtered = localOrders.filter(o => o.id !== orderId)
+          localStorage.setItem('mazish_orders', JSON.stringify(filtered))
+          setMessage("Order removed locally (Sandbox Mode)")
+        } else {
+          setMessage("Order deleted successfully from Supabase!")
+        }
+      }
+      loadData()
+    } catch (err) {
+      setMessage(`Error: ${err.message}`)
+    }
+    setActionLoading(null)
+  }
+
   const handleAddProduct = async (e) => {
     e.preventDefault()
     setActionLoading('new-product')
@@ -489,18 +660,53 @@ export default function AdminPage() {
     }
   }
 
-  // E-commerce Dashboard Metrics Calculation
-  const totalRevenue = orders
+  // Helper to identify manual/income-tracker entries
+  const isManualOrder = (order) => {
+    if (!order) return false
+    const idStr = order.id ? order.id.toString() : ''
+    const paymentMethod = order.payment_method ? order.payment_method.toString().toUpperCase() : ''
+    const paymentDetails = order.payment_details ? order.payment_details.toString() : ''
+    
+    return !!(
+      idStr.startsWith('manual-') || 
+      idStr.startsWith('demo-') || 
+      !idStr.includes('-') ||
+      paymentMethod === 'CASH' ||
+      paymentMethod === 'BANK' ||
+      paymentDetails.startsWith('[Manual]') ||
+      paymentDetails.includes('Note:')
+    )
+  }
+
+  // Safe Date parsing helper for forms
+  const getSafeDateTimeString = (dateStr) => {
+    try {
+      if (!dateStr) return new Date().toISOString().substring(0, 16)
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) {
+        return new Date().toISOString().substring(0, 16)
+      }
+      return d.toISOString().substring(0, 16)
+    } catch (e) {
+      return new Date().toISOString().substring(0, 16)
+    }
+  }
+
+  // Only show online orders in the main Orders area
+  const onlineOrdersOnly = orders.filter(o => !isManualOrder(o))
+
+  // E-commerce Dashboard Metrics Calculation (Online orders only)
+  const totalRevenue = onlineOrdersOnly
     .filter(o => o.status !== 'Cancelled')
     .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0)
 
   const activePromoCount = promoCodes.filter(p => p.is_active).length
-  const totalItemsSold = orders
+  const totalItemsSold = onlineOrdersOnly
     .filter(o => o.status !== 'Cancelled')
     .reduce((sum, o) => sum + (o.items?.reduce((s, item) => s + (item.quantity || 0), 0) || 0), 0)
 
   // Search & Filter Logic
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = onlineOrdersOnly.filter(order => {
     const matchesSearch = 
       order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.phone?.includes(searchTerm) ||
@@ -640,7 +846,7 @@ export default function AdminPage() {
           <div className="bg-zinc-900/30 border border-zinc-900/40 p-6 rounded-2xl flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Total Orders</span>
-              <p className="text-2xl font-bold text-white">{orders.length}</p>
+              <p className="text-2xl font-bold text-white">{onlineOrdersOnly.length}</p>
             </div>
             <div className="p-3.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-full">
               <ShoppingCart size={20} />
@@ -713,6 +919,15 @@ export default function AdminPage() {
           >
             <Tag size={16} />
             Promo Codes ({promoCodes.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('manual-order')
+            }}
+            className={`pb-4 transition-colors flex items-center gap-2 whitespace-nowrap ${activeTab === 'manual-order' ? 'text-amber-500 border-b border-amber-500' : 'hover:text-white'}`}
+          >
+            <DollarSign size={16} />
+            Income Tracker
           </button>
           <button
             onClick={() => setActiveTab('categories')}
@@ -1238,6 +1453,173 @@ export default function AdminPage() {
               </table>
             </div>
           </div>
+        ) : activeTab === 'manual-order' ? (
+          /* INCOME TRACKER TAB (LEDGER LOG) */
+          <div className="space-y-6 animate-fadeIn">
+            {/* Header/Summary Stats */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-zinc-900/20 border border-zinc-900 p-6 rounded-xl">
+              <div>
+                <h2 className="text-lg font-semibold tracking-wider text-white uppercase flex items-center gap-2">
+                  <DollarSign className="text-amber-500" size={20} />
+                  Income Tracker Ledger
+                </h2>
+                <p className="text-zinc-500 text-xs mt-1 font-light">
+                  View and manage manual entry records and store transactions log.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setNewManualOrder({
+                    customer_name: '',
+                    phone: '',
+                    email: '',
+                    delivery_address: '',
+                    payment_method: 'COD',
+                    payment_details: 'COD',
+                    shipping_cost: 0,
+                    discount_amount: 0,
+                    total_amount: '',
+                    status: 'Pending',
+                    created_at: new Date().toISOString().substring(0, 16),
+                    note: ''
+                  })
+                  setManualSelectedProducts([])
+                  setShowManualOrderModal(true)
+                }}
+                className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold uppercase tracking-wider text-xs px-5 py-3 rounded-full transition-all flex items-center gap-2"
+              >
+                <PlusCircle size={14} />
+                Add Manual Entry
+              </button>
+            </div>
+
+            {/* Transactions Table Log */}
+            <div className="overflow-x-auto border border-zinc-900 rounded-2xl bg-zinc-900/10">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-zinc-900/35 border-b border-zinc-900 text-zinc-400 font-semibold tracking-wider text-xs uppercase">
+                    <th className="p-4 sm:p-6">Date</th>
+                    <th className="p-4 sm:p-6">Type</th>
+                    <th className="p-4 sm:p-6">Customer</th>
+                    <th className="p-4 sm:p-6">Items & Quantities</th>
+                    <th className="p-4 sm:p-6">Payment / Memo</th>
+                    <th className="p-4 sm:p-6">Amount</th>
+                    <th className="p-4 sm:p-6">Fulfillment</th>
+                    <th className="p-4 sm:p-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-900">
+                  {orders.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="p-12 text-center text-zinc-500 text-xs font-light">
+                        No transactions logged yet. Click "Add Manual Entry" to record a transaction.
+                      </td>
+                    </tr>
+                  ) : (
+                    orders.map((order) => {
+                      const isManual = isManualOrder(order)
+                      return (
+                        <tr key={order.id} className="hover:bg-zinc-900/10 transition-colors">
+                          <td className="p-4 sm:p-6 whitespace-nowrap text-xs text-zinc-400">
+                            {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="p-4 sm:p-6 whitespace-nowrap">
+                            <span className={`inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                              isManual 
+                                ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
+                                : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                            }`}>
+                              {isManual ? 'Manual' : 'Online'}
+                            </span>
+                          </td>
+                          <td className="p-4 sm:p-6">
+                            <p className="text-white font-medium text-xs">{order.customer_name}</p>
+                            <p className="text-[10px] text-zinc-500">{order.phone}</p>
+                          </td>
+                          <td className="p-4 sm:p-6 text-xs text-zinc-350">
+                            {order.items?.map(i => `${i.name} (x${i.quantity})`).join(', ') || 'No items'}
+                          </td>
+                          <td className="p-4 sm:p-6 text-xs text-zinc-500 max-w-[200px] truncate" title={order.payment_details ? (order.payment_details.toString().startsWith('[Manual] ') ? order.payment_details.toString().substring(9) : order.payment_details) : ''}>
+                            {order.payment_details ? (order.payment_details.toString().startsWith('[Manual] ') ? order.payment_details.toString().substring(9) : order.payment_details) : '-'}
+                          </td>
+                          <td className="p-4 sm:p-6 whitespace-nowrap text-xs text-white font-bold">
+                            ৳{order.total_amount}
+                          </td>
+                          <td className="p-4 sm:p-6 whitespace-nowrap">
+                            <span className={`inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                              order.status === 'Shipped' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                              order.status === 'Confirmed' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' :
+                              order.status === 'Cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                              order.status === 'Returned' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                              order.status === 'Delivered' ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20' :
+                              'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </td>
+                          <td className="p-4 sm:p-6 text-right whitespace-nowrap space-x-3">
+                            <button
+                              onClick={() => setSelectedOrderForModal(order)}
+                              className="text-zinc-400 hover:text-white font-medium text-xs transition-all"
+                            >
+                              Details
+                            </button>
+                            {isManual && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditingManualOrder(order)
+                                    setNewManualOrder({
+                                      customer_name: order.customer_name || '',
+                                      phone: order.phone || '',
+                                      email: order.email || '',
+                                      delivery_address: order.delivery_address || '',
+                                      payment_method: order.payment_method || 'COD',
+                                      payment_details: order.payment_details ? order.payment_details.split(' | Note: ')[0] : 'COD',
+                                      shipping_cost: order.shipping_cost || 0,
+                                      discount_amount: order.discount_amount || 0,
+                                      total_amount: order.total_amount || '',
+                                      status: order.status || 'Pending',
+                                      created_at: order.created_at ? new Date(order.created_at).toISOString().substring(0, 16) : new Date().toISOString().substring(0, 16),
+                                      note: order.payment_details && order.payment_details.includes(' | Note: ') ? order.payment_details.split(' | Note: ')[1] : ''
+                                    })
+                                    
+                                    // Map ordered items
+                                    const mappedItems = (order.items || []).map(item => {
+                                      const prodObj = products.find(p => p.id === item.id) || {
+                                        id: item.id,
+                                        name: item.name,
+                                        price: item.price,
+                                        category: item.category || 'Sunglasses',
+                                        gender: item.gender || 'Unisex'
+                                      }
+                                      return { product: prodObj, quantity: item.quantity }
+                                    })
+                                    setManualSelectedProducts(mappedItems)
+                                    setShowManualOrderModal(true)
+                                  }}
+                                  className="text-amber-500 hover:text-amber-400 font-medium text-xs transition-all"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteOrder(order.id)}
+                                  disabled={actionLoading === order.id + '-delete'}
+                                  className="text-red-500 hover:text-red-400 font-medium text-xs transition-all disabled:opacity-50"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           /* CATEGORIES TAB */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -1339,7 +1721,7 @@ export default function AdminPage() {
                       </span>
                       {selectedOrderForModal.payment_details && selectedOrderForModal.payment_details !== 'COD' && selectedOrderForModal.payment_details !== 'N/A' && (
                         <span className="text-[10px] text-zinc-400 font-mono bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-850">
-                          {selectedOrderForModal.payment_details}
+                          {selectedOrderForModal.payment_details.toString().startsWith('[Manual] ') ? selectedOrderForModal.payment_details.toString().substring(9) : selectedOrderForModal.payment_details}
                         </span>
                       )}
                     </div>
@@ -1448,6 +1830,291 @@ export default function AdminPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manual Order Entry Modal */}
+        {showManualOrderModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+                <div>
+                  <h3 className="font-luxury text-lg text-white uppercase tracking-wider">
+                    {editingManualOrder ? 'Edit Manual Order Record' : 'Manual Order Entry'}
+                  </h3>
+                  <p className="text-zinc-500 text-xs mt-1 font-light">Record client orders, customize dates, prices, and notes</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowManualOrderModal(false)
+                    setEditingManualOrder(null)
+                  }}
+                  className="p-1.5 hover:bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Body (Form) */}
+              <form onSubmit={handleCreateManualOrder} className="overflow-y-auto p-6 space-y-6 flex-1 text-sm font-sans">
+                {/* Customer Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Customer Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Syed Ahmed"
+                      value={newManualOrder.customer_name}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, customer_name: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Phone Number *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="017XXXXXXXX"
+                      value={newManualOrder.phone}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, phone: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Email Address (Optional)</label>
+                    <input
+                      type="email"
+                      placeholder="customer@gmail.com"
+                      value={newManualOrder.email}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, email: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Delivery Address *</label>
+                    <textarea
+                      required
+                      rows={2}
+                      placeholder="House, Road, Area, City"
+                      value={newManualOrder.delivery_address}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, delivery_address: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Settings Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-zinc-850 pt-6">
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Order Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={newManualOrder.created_at}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, created_at: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Order Status / Progress</label>
+                    <select
+                      value={newManualOrder.status}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, status: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Returned">Returned</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Payment Method</label>
+                    <select
+                      value={newManualOrder.payment_method}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, payment_method: e.target.value, payment_details: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    >
+                      <option value="COD">Cash on Delivery</option>
+                      <option value="bKash">bKash</option>
+                      <option value="Nagad">Nagad</option>
+                      <option value="Cash">Cash (Hand-to-Hand)</option>
+                      <option value="Bank">Bank Transfer</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Products & Quantity selection */}
+                <div className="border-t border-zinc-850 pt-6 space-y-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-500">Products & Quantity Selection</h3>
+                  <div className="flex flex-col sm:flex-row gap-3 items-end">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Choose Product</label>
+                      <select
+                        id="manual-product-select-modal"
+                        className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                      >
+                        <option value="">Select a product...</option>
+                        {products.map(p => (
+                          <option key={p.id} value={p.id}>{p.name} (৳{p.discount_price || p.price})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-full sm:w-28">
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Quantity</label>
+                      <input
+                        type="number"
+                        id="manual-product-qty-modal"
+                        min={1}
+                        defaultValue={1}
+                        className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const selectEl = document.getElementById('manual-product-select-modal');
+                        const qtyEl = document.getElementById('manual-product-qty-modal');
+                        const pid = selectEl?.value;
+                        const qty = parseInt(qtyEl?.value || '1');
+                        
+                        if (!pid) return;
+                        const product = products.find(p => p.id === pid);
+                        if (!product) return;
+
+                        const existingIdx = manualSelectedProducts.findIndex(item => item.product.id === pid);
+                        if (existingIdx !== -1) {
+                          const updated = [...manualSelectedProducts];
+                          updated[existingIdx].quantity += qty;
+                          setManualSelectedProducts(updated);
+                        } else {
+                          setManualSelectedProducts([...manualSelectedProducts, { product, quantity: qty }]);
+                        }
+
+                        if (selectEl) selectEl.value = '';
+                        if (qtyEl) qtyEl.value = '1';
+                      }}
+                      className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-white font-bold uppercase tracking-wider text-[10px] px-5 py-2.5 rounded-lg transition-all h-9 flex items-center justify-center whitespace-nowrap"
+                    >
+                      Add Product
+                    </button>
+                  </div>
+
+                  {manualSelectedProducts.length > 0 && (
+                    <div className="border border-zinc-850 rounded-xl overflow-hidden bg-zinc-950/20">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-zinc-900/40 border-b border-zinc-850 text-zinc-500 font-semibold uppercase">
+                            <th className="p-3">Product Name</th>
+                            <th className="p-3 text-center">Unit Price</th>
+                            <th className="p-3 text-center">Quantity</th>
+                            <th className="p-3 text-right">Subtotal</th>
+                            <th className="p-3 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-900">
+                          {manualSelectedProducts.map(({ product, quantity }) => {
+                            const unitPrice = product.discount_price || product.price;
+                            return (
+                              <tr key={product.id} className="text-zinc-300">
+                                <td className="p-3 font-medium text-white">{product.name}</td>
+                                <td className="p-3 text-center">৳{unitPrice}</td>
+                                <td className="p-3 text-center">{quantity}</td>
+                                <td className="p-3 text-right text-white font-semibold">৳{unitPrice * quantity}</td>
+                                <td className="p-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setManualSelectedProducts(manualSelectedProducts.filter(item => item.product.id !== product.id));
+                                    }}
+                                    className="text-red-400 hover:text-red-300 underline font-semibold"
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Costs & Note summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-zinc-850 pt-6">
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Shipping Cost (৳)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={newManualOrder.shipping_cost}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, shipping_cost: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Discount Amount (৳)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={newManualOrder.discount_amount}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, discount_amount: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Total Amount (৳) [Optional Overwrite]</label>
+                    <input
+                      type="number"
+                      placeholder={
+                        manualSelectedProducts.reduce((sum, item) => sum + ((item.product.discount_price || item.product.price) * item.quantity), 0) +
+                        parseFloat(newManualOrder.shipping_cost || 0) -
+                        parseFloat(newManualOrder.discount_amount || 0)
+                      }
+                      value={newManualOrder.total_amount}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, total_amount: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Order Details Note / Memo</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Memo, custom requests, etc."
+                      value={newManualOrder.note}
+                      onChange={(e) => setNewManualOrder({ ...newManualOrder, note: e.target.value })}
+                      className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none transition-colors resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Actions Footer */}
+                <div className="p-4 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900/50">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowManualOrderModal(false)
+                      setEditingManualOrder(null)
+                    }}
+                    className="border border-zinc-800 hover:border-zinc-700 bg-zinc-900 text-zinc-300 font-semibold uppercase tracking-wider text-[10px] px-5 py-2.5 rounded-full transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading === 'manual-order'}
+                    className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold uppercase tracking-wider text-[10px] px-6 py-2.5 rounded-full transition-all disabled:opacity-50"
+                  >
+                    {actionLoading === 'manual-order' ? 'Saving...' : (editingManualOrder ? 'Update Order' : 'Create Order')}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
