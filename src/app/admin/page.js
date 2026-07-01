@@ -695,14 +695,14 @@ export default function AdminPage() {
   // Only show online orders in the main Orders area
   const onlineOrdersOnly = orders.filter(o => !isManualOrder(o))
 
-  // E-commerce Dashboard Metrics Calculation (Online orders only)
+  // E-commerce Dashboard Metrics Calculation (Online orders only, excluding Cancelled and Returned)
   const totalRevenue = onlineOrdersOnly
-    .filter(o => o.status !== 'Cancelled')
+    .filter(o => o.status !== 'Cancelled' && o.status !== 'Returned')
     .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0)
 
   const activePromoCount = promoCodes.filter(p => p.is_active).length
   const totalItemsSold = onlineOrdersOnly
-    .filter(o => o.status !== 'Cancelled')
+    .filter(o => o.status !== 'Cancelled' && o.status !== 'Returned')
     .reduce((sum, o) => sum + (o.items?.reduce((s, item) => s + (item.quantity || 0), 0) || 0), 0)
 
   // Search & Filter Logic
@@ -1003,7 +1003,17 @@ export default function AdminPage() {
                     {filteredOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-zinc-900/10">
                         <td className="p-4 sm:p-6 space-y-1">
-                          <p className="font-semibold text-white truncate max-w-[150px]">{order.id}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-white truncate max-w-[120px]" title={order.id}>{order.id}</p>
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              disabled={actionLoading === order.id + '-delete'}
+                              className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded transition-all disabled:opacity-50"
+                              title="Delete Order"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                           <p className="text-[10px] text-zinc-500">
                             {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
@@ -1117,6 +1127,16 @@ export default function AdminPage() {
                             >
                               <Eye size={12} />
                               View Details
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              disabled={actionLoading === order.id + '-delete'}
+                              className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-400 font-medium text-xs border border-red-500/25 hover:border-red-500/40 bg-zinc-950 px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+                              title="Delete Order"
+                            >
+                              <Trash2 size={12} />
+                              Delete
                             </button>
                           </div>
                         </td>
