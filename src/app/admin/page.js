@@ -695,13 +695,13 @@ export default function AdminPage() {
   // Only show online orders in the main Orders area
   const onlineOrdersOnly = orders.filter(o => !isManualOrder(o))
 
-  // E-commerce Dashboard Metrics Calculation (Online orders only, excluding Cancelled and Returned)
-  const totalRevenue = onlineOrdersOnly
+  // E-commerce Dashboard Metrics Calculation (Excluding Cancelled and Returned orders, including both Online and Manual)
+  const totalRevenue = orders
     .filter(o => o.status !== 'Cancelled' && o.status !== 'Returned')
     .reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0)
 
   const activePromoCount = promoCodes.filter(p => p.is_active).length
-  const totalItemsSold = onlineOrdersOnly
+  const totalItemsSold = orders
     .filter(o => o.status !== 'Cancelled' && o.status !== 'Returned')
     .reduce((sum, o) => sum + (o.items?.reduce((s, item) => s + (item.quantity || 0), 0) || 0), 0)
 
@@ -846,7 +846,7 @@ export default function AdminPage() {
           <div className="bg-zinc-900/30 border border-zinc-900/40 p-6 rounded-2xl flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Total Orders</span>
-              <p className="text-2xl font-bold text-white">{onlineOrdersOnly.length}</p>
+              <p className="text-2xl font-bold text-white">{orders.length}</p>
             </div>
             <div className="p-3.5 bg-zinc-950 border border-zinc-850 text-zinc-400 rounded-full">
               <ShoppingCart size={20} />
