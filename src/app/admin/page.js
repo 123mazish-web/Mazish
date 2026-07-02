@@ -101,7 +101,7 @@ export default function AdminPage() {
       const [ordersRes, productsRes, promosRes, catsRes] = await Promise.allSettled([
         queryTimeout(supabase.from('orders').select('*').order('created_at', { ascending: false })),
         queryTimeout(getProducts()),
-        queryTimeout(supabase.from('promo_codes').select('*').order('created_at', { ascending: false })),
+        queryTimeout(fetch('/api/admin/promos/manage').then(res => res.json())),
         queryTimeout(supabase.from('categories').select('*').order('name', { ascending: true }))
       ])
 
@@ -119,11 +119,36 @@ export default function AdminPage() {
         setProducts(productsRes.value)
       }
 
-      // 3. Process Promo Codes
+      // 3. Process Promo Codes & sync local ones if db is online
       const localPromos = JSON.parse(localStorage.getItem('mazish_promos') || '[]')
-      if (promosRes.status === 'fulfilled' && promosRes.value && promosRes.value.data && !promosRes.value.error) {
+      if (promosRes.status === 'fulfilled' && promosRes.value && promosRes.value.success) {
         const dbPromos = promosRes.value.data
-        setPromoCodes([...dbPromos, ...localPromos.filter(lp => !dbPromos.find(dp => dp.code === lp.code))])
+        const toSync = localPromos.filter(lp => !dbPromos.find(dp => dp.code === lp.code))
+        
+        if (toSync.length > 0) {
+          // Sync to database
+          Promise.all(toSync.map(promo => 
+            fetch('/api/admin/promos/manage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'CREATE',
+                payload: {
+                  code: promo.code,
+                  discount_type: promo.discount_type,
+                  discount_value: promo.discount_value,
+                  is_active: promo.is_active
+                }
+              })
+            }).then(r => r.json()).catch(err => console.error("Auto-sync promo error:", err))
+          )).then((results) => {
+            // Only clear local storage if the database accepted them
+            localStorage.setItem('mazish_promos', '[]')
+          })
+          setPromoCodes([...dbPromos, ...toSync])
+        } else {
+          setPromoCodes(dbPromos)
+        }
       } else {
         setPromoCodes(localPromos)
       }
@@ -584,8 +609,15 @@ export default function AdminPage() {
         is_active: newPromo.is_active
       }
 
-      const { data, error } = await supabase.from('promo_codes').insert([payload])
-      if (error) {
+      const res = await fetch('/api/admin/promos/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'CREATE', payload })
+      })
+      const result = await res.json()
+
+      if (!result.success) {
+        console.warn("Failed to create promo code in Supabase, using local storage:", result.error)
         const localPromos = JSON.parse(localStorage.getItem('mazish_promos') || '[]')
         localPromos.push({ ...payload, created_at: new Date().toISOString() })
         localStorage.setItem('mazish_promos', JSON.stringify(localPromos))
@@ -610,17 +642,45 @@ export default function AdminPage() {
   const handleTogglePromo = async (code, currentActive) => {
     setActionLoading(code)
     try {
-      const { error } = await supabase
-        .from('promo_codes')
-        .update({ is_active: !currentActive })
-        .eq('code', code)
+      const res = await fetch('/api/admin/promos/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'TOGGLE', code, payload: { is_active: !currentActive } })
+      })
+      const result = await res.json()
 
-      if (error) {
+      if (!result.success) {
+        console.warn("Failed to toggle status in Supabase, using local storage:", result.error)
         const localPromos = JSON.parse(localStorage.getItem('mazish_promos') || '[]')
         const updated = localPromos.map(p => p.code === code ? { ...p, is_active: !currentActive } : p)
         localStorage.setItem('mazish_promos', JSON.stringify(updated))
       }
       setMessage(`Promo code ${code} status changed!`)
+      loadData()
+    } catch (err) {
+      setMessage(`Error: ${err.message}`)
+    }
+    setActionLoading(null)
+  }
+
+  const handleDeletePromo = async (code) => {
+    if (!confirm(`Are you sure you want to delete promo code ${code}? This action cannot be undone.`)) return
+    setActionLoading(code + '-delete')
+    try {
+      const res = await fetch('/api/admin/promos/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'DELETE', code })
+      })
+      const result = await res.json()
+
+      if (!result.success) {
+        console.warn("Failed to delete promo from Supabase, attempting local storage deletion:", result.error)
+        const localPromos = JSON.parse(localStorage.getItem('mazish_promos') || '[]')
+        const filtered = localPromos.filter(p => p.code !== code)
+        localStorage.setItem('mazish_promos', JSON.stringify(filtered))
+      }
+      setMessage(`Promo code ${code} deleted!`)
       loadData()
     } catch (err) {
       setMessage(`Error: ${err.message}`)
@@ -1457,13 +1517,20 @@ export default function AdminPage() {
                             {promo.is_active ? 'Active' : 'Disabled'}
                           </span>
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="p-4 text-right flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleTogglePromo(promo.code, promo.is_active)}
                             disabled={actionLoading === promo.code}
                             className="text-[10px] font-semibold uppercase tracking-wider border border-zinc-800 bg-zinc-950 px-3 py-1.5 rounded hover:border-zinc-700 text-zinc-400 hover:text-white transition-all disabled:opacity-50"
                           >
                             Toggle Status
+                          </button>
+                          <button
+                            onClick={() => handleDeletePromo(promo.code)}
+                            disabled={actionLoading === promo.code + '-delete'}
+                            className="text-[10px] font-semibold uppercase tracking-wider border border-red-905/30 bg-zinc-950 px-3 py-1.5 rounded hover:border-red-500/50 text-red-500 hover:text-red-400 transition-all disabled:opacity-50"
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>
