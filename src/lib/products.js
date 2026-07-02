@@ -117,7 +117,7 @@ export const DEFAULT_PRODUCTS = [
     images: ["/images/Argentina1.jpg", "/images/Argentina2.jpg", "/images/Argentina3.jpg"],
     category: "FIFA Special Edition",
     gender: "Unisex",
-    stock: 50,
+    stock: 0,
     is_featured: true,
     is_preorder: false
   }

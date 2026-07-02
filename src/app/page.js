@@ -70,6 +70,9 @@ export default function HomePage() {
     .filter(p => p.id !== 'fifa-brazil' && p.id !== 'fifa-argentina' && p.is_featured)
     .slice(0, 3)
 
+  const argentinaProduct = products.find(p => p.id === 'fifa-argentina')
+  const isArgentinaSoldOut = argentinaProduct ? (argentinaProduct.stock <= 0) : true
+
   return (
     <div className="relative overflow-hidden bg-zinc-950">
       {/* Banner Image Slider Hero */}
@@ -193,6 +196,11 @@ export default function HomePage() {
             {/* Argentina Glass */}
             <div className="relative group overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-900/10 p-8 flex flex-col justify-between hover:border-sky-500/30 transition-all duration-300">
               <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-sky-500/5 blur-[64px] pointer-events-none"></div>
+              {isArgentinaSoldOut && (
+                <span className="absolute top-4 left-4 z-20 bg-red-600 text-white font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded">
+                  Sold Out
+                </span>
+              )}
               <div>
                 <span className="text-[10px] font-semibold text-sky-400 tracking-wider uppercase">Argentina Edition</span>
                 <Link href="/product/fifa-argentina">
@@ -210,12 +218,18 @@ export default function HomePage() {
                   <span className="text-xl font-bold text-amber-500">৳999</span>
                   <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
-                <Link
-                  href="/product/fifa-argentina"
-                  className="bg-sky-500 hover:bg-sky-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-8 py-3.5 rounded-full transition-all duration-300 text-center"
-                >
-                  Order Now
-                </Link>
+                {isArgentinaSoldOut ? (
+                  <span className="bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold uppercase tracking-widest text-[9px] px-8 py-3.5 rounded-full cursor-not-allowed">
+                    Sold Out
+                  </span>
+                ) : (
+                  <Link
+                    href="/product/fifa-argentina"
+                    className="bg-sky-500 hover:bg-sky-400 text-zinc-950 font-bold uppercase tracking-widest text-[9px] px-8 py-3.5 rounded-full transition-all duration-300 text-center"
+                  >
+                    Order Now
+                  </Link>
+                )}
               </div>
             </div>
           </div>
