@@ -6,8 +6,9 @@ import { Check, Package, MapPin, Phone, CreditCard, ShoppingBag } from 'lucide-r
 import { supabase } from '@/lib/supabase'
 
 export default function OrderConfirmationPage({ params, searchParams }) {
-  const { id } = use(params)
-  const resolvedSearchParams = use(searchParams)
+  const unwrappedParams = params && typeof params.then === 'function' ? use(params) : params
+  const id = unwrappedParams?.id
+  const resolvedSearchParams = searchParams && typeof searchParams.then === 'function' ? use(searchParams) : searchParams
   const isDemo = resolvedSearchParams?.demo === 'true'
 
   const [order, setOrder] = useState(null)

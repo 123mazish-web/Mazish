@@ -9,7 +9,8 @@ import { useCart } from '@/context/CartContext'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
 
 export default function ProductPage({ params }) {
-  const { id } = use(params)
+  const unwrappedParams = params && typeof params.then === 'function' ? use(params) : params
+  const id = unwrappedParams?.id
   
   // Optimistically load from static fallback to make the page open instantly
   const initialProduct = DEFAULT_PRODUCTS.find(p => p.id === id) || null
