@@ -95,33 +95,47 @@ export async function getProductById(id) {
 }
 
 export async function createOrder(orderData) {
-  try {
-    const { data, error } = await withTimeout(
-      supabase
-        .from('orders')
-        .insert([orderData])
-        .select()
-        .single()
-    )
+  let attempt = 0
+  const maxAttempts = 5
+  let lastError = null
 
-    if (error) {
-      console.error("Failed to insert order into Supabase:", error)
-      // For local testing/quick launch without database, return a mock order response
-      return {
-        success: false,
-        error: error.message,
-        mockOrder: { id: crypto.randomUUID(), ...orderData, created_at: new Date().toISOString() }
+  while (attempt < maxAttempts) {
+    attempt++
+    try {
+      console.log(`Order creation attempt ${attempt}...`)
+      // Increase timeout to 12 seconds per attempt to handle database wake-up / cold starts
+      const { data, error } = await withTimeout(
+        supabase
+          .from('orders')
+          .insert([orderData])
+          .select()
+          .single(),
+        12000
+      )
+
+      if (!error && data) {
+        console.log("Order successfully created in Supabase on attempt", attempt)
+        return { success: true, data }
       }
+
+      lastError = error || new Error('Query returned empty response')
+      console.warn(`Attempt ${attempt} database insert returned error:`, error)
+    } catch (e) {
+      lastError = e
+      console.error(`Attempt ${attempt} connection failed:`, e)
     }
 
-    return { success: true, data }
-  } catch (e) {
-    console.error("Order creation connection failure:", e)
-    return {
-      success: false,
-      error: e.message,
-      mockOrder: { id: crypto.randomUUID(), ...orderData, created_at: new Date().toISOString() }
+    if (attempt < maxAttempts) {
+      // Wait 3 seconds before retrying to give database time to spin up
+      await new Promise(resolve => setTimeout(resolve, 3000))
     }
+  }
+
+  console.error("All order creation attempts failed. Fallback to mock order.", lastError)
+  return {
+    success: false,
+    error: lastError ? lastError.message : 'Unknown connection error',
+    mockOrder: { id: crypto.randomUUID(), ...orderData, created_at: new Date().toISOString() }
   }
 }
 

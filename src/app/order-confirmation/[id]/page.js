@@ -114,6 +114,22 @@ export default function OrderConfirmationPage({ params, searchParams }) {
           </p>
         </div>
 
+        {/* Announcement Banner */}
+        <div className="bg-amber-500/5 border border-amber-500/15 rounded-2xl p-6 text-center space-y-4">
+          <p className="text-zinc-300 text-xs sm:text-sm font-light leading-relaxed max-w-xl mx-auto">
+            If you do not receive a confirmation call within the next <strong>24 hours</strong>, please call us directly or send a message to our Facebook page.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center items-center">
+            <a href="tel:01410288630" className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+              <Phone size={13} />
+              Call 01410288630
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61590005602732" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-zinc-850 hover:border-zinc-750 bg-zinc-950 text-zinc-300 hover:text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full transition-all">
+              Message on Facebook
+            </a>
+          </div>
+        </div>
+
         {/* Order Details Card */}
         <div className="bg-zinc-900/40 border border-zinc-900 rounded-2xl overflow-hidden divide-y divide-zinc-950">
           {/* Header Info */}

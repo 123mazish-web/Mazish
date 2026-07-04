@@ -70,8 +70,8 @@ export default function HomePage() {
     .filter(p => p.id !== 'fifa-brazil' && p.id !== 'fifa-argentina' && p.is_featured)
     .slice(0, 3)
 
-  const argentinaProduct = products.find(p => p.id === 'fifa-argentina')
-  const isArgentinaSoldOut = argentinaProduct ? (argentinaProduct.stock <= 0) : true
+  const argentinaProduct = products.find(p => p.id === 'fifa-argentina' || p.id === '90c5dcff-dbdd-405d-9aae-8cdad4d86641')
+  const isArgentinaSoldOut = argentinaProduct ? (argentinaProduct.stock <= 0) : false
 
   return (
     <div className="relative overflow-hidden bg-zinc-950">
