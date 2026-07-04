@@ -169,16 +169,16 @@ export default function CheckoutPage() {
     const response = await createOrder(orderData)
     setSubmitting(false)
 
-    // Save a backup copy of the order on the Next.js server disk in all cases (independent of Supabase status)
+    // Trigger secure Telegram/Discord webhook notification on order creation
     try {
       const backupPayload = response.success ? response.data : response.mockOrder
-      fetch('/api/admin/orders/backup', {
+      fetch('/api/orders/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(backupPayload)
-      }).catch(e => console.warn("Failed to send order server backup:", e))
+      }).catch(e => console.warn("Failed to dispatch order notification:", e))
     } catch (e) {
-      console.warn("Server backup error:", e)
+      console.warn("Notification dispatch error:", e)
     }
 
     if (response.success) {

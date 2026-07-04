@@ -71,29 +71,6 @@ export default function AdminPage() {
   // New category form state
   const [newCategoryName, setNewCategoryName] = useState('')
 
-  const [backupOrders, setBackupOrders] = useState([])
-  const [backupLoading, setBackupLoading] = useState(false)
-
-  async function loadBackupOrders() {
-    setBackupLoading(true)
-    try {
-      const res = await fetch('/api/admin/orders/backup')
-      const result = await res.json()
-      if (result.success) {
-        setBackupOrders(result.data || [])
-      }
-    } catch (e) {
-      console.error("Failed to load server backup orders:", e)
-    }
-    setBackupLoading(false)
-  }
-
-  useEffect(() => {
-    if (activeTab === 'backup-logs') {
-      loadBackupOrders()
-    }
-  }, [activeTab])
-
   useEffect(() => {
     const token = localStorage.getItem('mazish_admin_token') || sessionStorage.getItem('mazish_admin_token')
     if (token === 'mazish-secure-admin-token') {
@@ -1019,13 +996,6 @@ export default function AdminPage() {
             <ListFilter size={16} />
             Categories ({categories.length})
           </button>
-          <button
-            onClick={() => setActiveTab('backup-logs')}
-            className={`pb-4 transition-colors flex items-center gap-2 whitespace-nowrap ${activeTab === 'backup-logs' ? 'text-amber-500 border-b border-amber-500' : 'hover:text-white'}`}
-          >
-            <RefreshCw size={16} />
-            Server Backup Logs
-          </button>
         </div>
 
         {/* Status / Message Display */}
@@ -1736,75 +1706,6 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
-          </div>
-        ) : activeTab === 'backup-logs' ? (
-          /* SERVER BACKUP LOGS TAB */
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-zinc-900/20 border border-zinc-900 p-4 rounded-xl">
-              <div>
-                <h3 className="text-sm font-semibold tracking-wider text-white uppercase">Server Backup Logs</h3>
-                <p className="text-zinc-500 text-xs mt-1 font-light">These orders are saved directly to the Next.js server disk. They serve as a foolproof backup in case Supabase experiences downtime or outages.</p>
-              </div>
-              <button
-                onClick={loadBackupOrders}
-                disabled={backupLoading}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-500 hover:text-amber-400 border border-amber-500/25 hover:border-amber-500/40 bg-zinc-950 px-4 py-2 rounded-full transition-all disabled:opacity-50 whitespace-nowrap"
-              >
-                <RefreshCw size={12} className={backupLoading ? 'animate-spin' : ''} />
-                Refresh Logs
-              </button>
-            </div>
-
-            {backupLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-amber-500"></div>
-              </div>
-            ) : backupOrders.length === 0 ? (
-              <div className="text-center p-20 border border-dashed border-zinc-900 rounded-2xl text-zinc-500">
-                No backup orders found on server.
-              </div>
-            ) : (
-              <div className="overflow-x-auto border border-zinc-900 rounded-2xl">
-                <table className="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-zinc-900/35 border-b border-zinc-900 text-zinc-400 font-semibold tracking-wider text-xs uppercase">
-                      <th className="p-4 sm:p-6">Order Details</th>
-                      <th className="p-4 sm:p-6">Customer</th>
-                      <th className="p-4 sm:p-6">Items & Amount</th>
-                      <th className="p-4 sm:p-6">Backup Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-900">
-                    {backupOrders.map((order) => (
-                      <tr key={order.id} className="hover:bg-zinc-900/10">
-                        <td className="p-4 sm:p-6 space-y-1">
-                          <p className="font-semibold text-white truncate max-w-[150px]">{order.id}</p>
-                          <span className={`inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                            order.payment_method === 'COD' ? 'bg-zinc-800 text-zinc-300' : 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
-                          }`}>
-                            {order.payment_method}
-                          </span>
-                        </td>
-                        <td className="p-4 sm:p-6 space-y-1">
-                          <p className="text-white font-medium">{order.customer_name}</p>
-                          <p className="text-xs text-zinc-400">{order.phone}</p>
-                          <p className="text-[10px] text-zinc-500 line-clamp-1">{order.delivery_address}</p>
-                        </td>
-                        <td className="p-4 sm:p-6 space-y-1">
-                          <p className="text-white">৳{order.total_amount}</p>
-                          <p className="text-[10px] text-zinc-500">
-                            {order.items?.map(i => `${i.name} (${i.quantity})`).join(', ')}
-                          </p>
-                        </td>
-                        <td className="p-4 sm:p-6 text-zinc-400 text-xs">
-                          {order.backup_created_at ? new Date(order.backup_created_at).toLocaleString() : 'N/A'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
         ) : (
           /* CATEGORIES TAB */
