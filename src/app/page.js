@@ -159,7 +159,7 @@ export default function HomePage() {
             <h2 className="font-luxury text-3xl sm:text-5xl text-white tracking-widest uppercase">THE FIFA SPECIALS</h2>
             <div className="h-[1px] w-12 bg-zinc-800 mx-auto"></div>
             <p className="text-zinc-500 text-xs font-light max-w-md mx-auto leading-relaxed">
-              Show your colors. Brazil vs Argentina. Handcrafted luxury statements. Special launch offer at ৳999 instead of ৳1500.
+              Show your colors. Brazil vs Argentina. Handcrafted luxury statements. Special launch offer at ৳799 instead of ৳1500.
             </p>
           </div>
 
@@ -181,7 +181,7 @@ export default function HomePage() {
               </Link>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xl font-bold text-amber-500">৳999</span>
+                  <span className="text-xl font-bold text-amber-500">৳799</span>
                   <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
                 <Link
@@ -215,7 +215,7 @@ export default function HomePage() {
               </Link>
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xl font-bold text-amber-500">৳999</span>
+                  <span className="text-xl font-bold text-amber-500">৳799</span>
                   <span className="text-xs text-zinc-600 line-through ml-2">৳1500</span>
                 </div>
                 {isArgentinaSoldOut ? (
