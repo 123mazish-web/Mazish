@@ -23,9 +23,9 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const bannerSlides = [
-    { desktop: '/images/banner1.png', mobile: '/images/banner1-mobile.png' },
-    { desktop: '/images/banner2.png', mobile: '/images/banner2-mobile.png' },
-    { desktop: '/images/banner3.png', mobile: '/images/banner3-mobile.png' }
+    { desktop: '/images/banner1.png', mobile: '/images/banner1.png' },
+    { desktop: '/images/banner2.png', mobile: '/images/banner2.png' },
+    { desktop: '/images/banner3.png', mobile: '/images/banner3.png' }
   ]
 
   // Auto-slide effect
@@ -112,8 +112,8 @@ export default function HomePage() {
                 <source 
                   media="(max-width: 767px)" 
                   srcSet={slide.mobile} 
-                  width={1080} 
-                  height={1350} 
+                  width={2560} 
+                  height={1440} 
                 />
                 <source 
                   media="(min-width: 768px)" 
