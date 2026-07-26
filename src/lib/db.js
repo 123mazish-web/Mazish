@@ -4,8 +4,8 @@ import { DEFAULT_PRODUCTS } from './products'
 // Helper to prevent database queries from hanging indefinitely
 async function withTimeout(promise, timeoutMs = 4000) {
   let timeoutId;
-  const timeoutPromise = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error('Database query timeout')), timeoutMs);
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => resolve({ data: null, error: new Error('Database query timeout') }), timeoutMs);
   });
   return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
 }

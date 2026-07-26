@@ -1,4 +1,4 @@
-import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
@@ -12,17 +12,17 @@ const cormorant = Cormorant_Garamond({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-const montserrat = Montserrat({
+const manrope = Manrope({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata = {
-  title: "MAZISH | The Hub of Fashion & Luxury in Bangladesh",
+  title: "MAZISH | Curated Premium Fashion & Eyewear in Bangladesh",
   description: "Discover premium, high-end fashion, luxury accessories, and statements starting with our curated sunglasses collection. Elevate your identity with Mazish.",
   openGraph: {
-    title: "MAZISH | The Hub of Fashion & Luxury",
+    title: "MAZISH | Curated Premium Fashion & Eyewear",
     description: "Discover premium sunglasses and luxury statements in Bangladesh.",
     images: [{ url: "/api/og" }],
   }
@@ -32,11 +32,11 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body 
-        className="min-h-full flex flex-col font-sans bg-zinc-950 text-zinc-100 selection:bg-amber-500 selection:text-zinc-950"
+        className="min-h-full flex flex-col font-sans bg-warm-bg text-charcoal selection:bg-primary-yellow selection:text-charcoal"
         suppressHydrationWarning
       >
         {/* Google Tag Manager (Script Injection via next/script) */}

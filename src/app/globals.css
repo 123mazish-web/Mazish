@@ -3,16 +3,46 @@
 @theme {
   --font-luxury: var(--font-luxury);
   --font-sans: var(--font-sans);
+  
+  --color-primary-yellow: var(--primary-yellow);
+  --color-deep-yellow: var(--deep-yellow);
+  --color-warm-bg: var(--warm-bg);
+  --color-secondary-bg: var(--secondary-bg);
+  --color-soft-bg: var(--soft-bg);
+  --color-charcoal: var(--charcoal);
+  --color-secondary-text: var(--secondary-text);
+  --color-soft-border: var(--soft-border);
+  --color-pure-white: var(--pure-white);
+  --color-success: var(--success);
+  --color-error: var(--error);
 }
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
+  /* LIGHT MODE ONLY - BRANDED IDENTITY */
+  --primary-yellow: #F4C542;
+  --deep-yellow: #D9A91F;
+  --warm-bg: #FFFFFF;
+  --secondary-bg: #FFF9E8;
+  --soft-bg: #F8F6F1;
+  
+  --charcoal: #1A1A1A;
+  --secondary-text: #6B6B6B;
+  --soft-border: #E8E3D8;
+  --pure-white: #FFFFFF;
+  
+  --success: #287A50;
+  --error: #B9433F;
+
+  --background: var(--warm-bg);
+  --foreground: var(--charcoal);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Custom scrollbar for premium touch */
@@ -20,13 +50,26 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: var(--warm-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--soft-border);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--secondary-text);
 }
 
+/* Base typography overrides to ensure readability */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-luxury), serif;
+  color: var(--charcoal);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+
+p {
+  font-family: var(--font-sans), sans-serif;
+  color: var(--secondary-text);
+  font-size: clamp(16px, 1.1vw, 18px);
+}

@@ -13,62 +13,68 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md transition-all duration-300">
-        <div className="mx-auto flex max-w-7xl h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Mobile Menu Toggle */}
-          <div className="flex lg:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-zinc-400 hover:text-white focus:outline-none"
-              aria-label="Toggle Menu"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+      <header className="sticky top-0 z-40 w-full border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
+        <div className="mx-auto relative flex max-w-7xl h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          
+          {/* Left Side Navigation Links - Desktop & Mobile Toggle + Icon Logo */}
+          <div className="flex-1 flex justify-start items-center space-x-4">
+            {/* Mobile Menu Toggle */}
+            <div className="flex lg:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-secondary-text hover:text-charcoal focus:outline-none p-2"
+                aria-label="Toggle Menu"
+              >
+                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
+            <nav className="hidden lg:flex items-center space-x-8 text-[14px] font-semibold tracking-widest uppercase text-secondary-text">
+              <Link href="/" className="hover:text-primary-yellow transition-colors duration-200">
+                Home
+              </Link>
+              <Link href="/shop" className="hover:text-primary-yellow transition-colors duration-200">
+                Shop Sunglasses
+              </Link>
+              <Link href="/track" className="hover:text-primary-yellow transition-colors duration-200">
+                Track Order
+              </Link>
+            </nav>
           </div>
 
-          {/* Nav Links - Desktop */}
-          <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium tracking-widest uppercase text-zinc-400">
-            <Link href="/" className="hover:text-amber-500 transition-colors duration-200">
-              Home
-            </Link>
-            <Link href="/shop" className="hover:text-amber-500 transition-colors duration-200">
-              Shop
-            </Link>
-            <Link href="/track" className="hover:text-amber-500 transition-colors duration-200">
-              Track Order
-            </Link>
-            <Link href="/about" className="hover:text-amber-500 transition-colors duration-200">
-              About
-            </Link>
-          </nav>
-
-          {/* Logo */}
-          <div className="flex-1 lg:flex-none text-center">
-            <Link href="/" className="inline-block">
-              <span className="font-luxury text-3xl sm:text-4xl tracking-[0.25em] text-white hover:text-amber-500 transition-colors duration-300">
+          {/* Logo Wordmark - Centered */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-10">
+            <Link href="/" className="inline-flex items-center justify-center gap-5">
+              <img
+                src="/images/main_logo.png"
+                alt="MAZISH"
+                className="h-10 w-auto object-contain mix-blend-multiply"
+              />
+              <span className="font-luxury text-2xl sm:text-3xl font-light tracking-[0.35em] text-charcoal hover:text-primary-yellow transition-colors duration-300 uppercase">
                 MAZISH
               </span>
             </Link>
           </div>
 
-          {/* Cart & Contact Actions */}
-          <div className="flex items-center space-x-6">
-            <Link
-              href="/about#contact"
-              className="hidden sm:inline-block text-xs font-semibold tracking-widest uppercase border border-zinc-850 px-5 py-2.5 rounded-full hover:bg-white hover:text-zinc-950 transition-all duration-300"
+          {/* Right Side Actions: Contact, Cart */}
+          <div className="flex-1 flex justify-end items-center space-x-4 sm:space-x-6 z-10">
+            <a
+              href="https://www.facebook.com/profile.php?id=61590005602732"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-block text-[12px] font-bold tracking-widest uppercase border border-soft-border px-5 py-2.5 rounded-full hover:bg-charcoal hover:text-warm-bg transition-all duration-300"
             >
               Contact
-            </Link>
+            </a>
 
             {/* Cart Trigger */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 text-zinc-300 hover:text-amber-500 transition-colors focus:outline-none"
+              className="relative p-2 text-secondary-text hover:text-charcoal transition-colors focus:outline-none cursor-pointer"
               aria-label="Open Cart"
             >
-              <ShoppingBag size={22} className="stroke-[1.5]" />
+              <ShoppingBag size={20} className="stroke-[1.7]" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-zinc-950 ring-2 ring-zinc-950 animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary-yellow text-[10px] font-bold text-charcoal ring-2 ring-warm-bg">
                   {cartCount}
                 </span>
               )}
@@ -78,61 +84,57 @@ export default function Header() {
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-zinc-900 bg-zinc-950 px-4 py-6 space-y-4 text-center">
+          <div className="lg:hidden border-t border-soft-border bg-warm-bg px-6 py-8 space-y-6 text-center transition-all duration-300">
             <Link
               href="/"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
+              className="block text-[16px] font-semibold uppercase tracking-wider text-secondary-text hover:text-charcoal"
             >
               Home
             </Link>
             <Link
               href="/shop"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
+              className="block text-[16px] font-semibold uppercase tracking-wider text-secondary-text hover:text-charcoal"
             >
-              Shop
+              Shop Sunglasses
             </Link>
             <Link
               href="/track"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
+              className="block text-[16px] font-semibold uppercase tracking-wider text-secondary-text hover:text-charcoal"
             >
               Track Order
             </Link>
-            <Link
-              href="/about"
+            <a
+              href="https://www.facebook.com/profile.php?id=61590005602732"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
-            >
-              About
-            </Link>
-            <Link
-              href="/about#contact"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-base font-medium uppercase tracking-wider text-zinc-400 hover:text-white"
+              className="block text-[16px] font-semibold uppercase tracking-wider text-secondary-text hover:text-charcoal"
             >
               Contact
-            </Link>
+            </a>
           </div>
         )}
       </header>
 
       {/* Cart Sliding Drawer Overlay */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 overflow-hidden bg-charcoal/40 backdrop-blur-sm">
           <div className="absolute inset-0 overflow-hidden">
             <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
               <div className="pointer-events-auto w-screen max-w-md">
-                <div className="flex h-full flex-col bg-zinc-900 shadow-2xl border-l border-zinc-800">
+                <div className="flex h-full flex-col bg-pure-white shadow-2xl border-l border-soft-border">
+                  
                   {/* Cart Header */}
-                  <div className="flex items-center justify-between px-6 py-6 border-b border-zinc-800">
-                    <h2 className="text-xl font-luxury tracking-wider text-white">Your Selection</h2>
+                  <div className="flex items-center justify-between px-6 py-6 border-b border-soft-border">
+                    <h2 className="text-lg font-luxury tracking-wider text-charcoal uppercase">Your Selection</h2>
                     <button
                       onClick={() => setIsCartOpen(false)}
-                      className="p-1 text-zinc-400 hover:text-white focus:outline-none"
+                      className="p-1.5 text-secondary-text hover:text-charcoal focus:outline-none"
                     >
-                      <X size={20} />
+                      <X size={18} />
                     </button>
                   </div>
 
@@ -140,20 +142,20 @@ export default function Header() {
                   <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
                     {cart.length === 0 ? (
                       <div className="flex h-64 flex-col items-center justify-center text-center">
-                        <ShoppingBag size={48} className="text-zinc-700 mb-4 stroke-[1]" />
-                        <p className="text-zinc-500 font-medium tracking-wide">Your cart is empty</p>
+                        <ShoppingBag size={44} className="text-secondary-text/30 mb-4 stroke-[1]" />
+                        <p className="text-secondary-text text-sm font-light tracking-wide">Your selection bag is empty</p>
                         <button
                           onClick={() => setIsCartOpen(false)}
-                          className="mt-6 text-sm font-semibold tracking-wider text-amber-500 uppercase hover:underline"
+                          className="mt-6 text-xs font-semibold tracking-widest text-primary-yellow uppercase hover:text-deep-yellow"
                         >
                           Continue Browsing
                         </button>
                       </div>
                     ) : (
                       cart.map((item) => (
-                        <div key={item.id} className="flex py-4 border-b border-zinc-850 last:border-b-0">
+                        <div key={item.id} className="flex py-4 border-b border-soft-border last:border-b-0">
                           {/* Image */}
-                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 relative">
+                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-soft-border bg-soft-bg relative">
                             <Image
                               src={item.images?.[0] || '/images/Sunglass1.png'}
                               alt={item.name}
@@ -165,36 +167,36 @@ export default function Header() {
                           {/* Info */}
                           <div className="ml-4 flex flex-1 flex-col justify-between">
                             <div>
-                              <div className="flex justify-between text-base font-semibold text-white">
+                              <div className="flex justify-between text-sm font-semibold text-charcoal">
                                 <h3 className="line-clamp-1">{item.name}</h3>
-                                <p className="ml-4 text-amber-500">৳{item.discount_price || item.price}</p>
+                                <p className="ml-4 text-charcoal">৳{item.discount_price || item.price}</p>
                               </div>
-                              <p className="mt-1 text-xs text-zinc-500">Sunglasses</p>
+                              <p className="mt-1 text-[10px] text-secondary-text uppercase tracking-wider">{item.category || 'Sunglasses'}</p>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                               {/* Quantity Controls */}
-                              <div className="flex items-center border border-zinc-800 rounded bg-zinc-950">
+                              <div className="flex items-center border border-soft-border rounded-lg bg-soft-bg">
                                 <button
                                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                  className="p-1.5 text-zinc-400 hover:text-white"
+                                  className="p-1.5 text-secondary-text hover:text-charcoal"
                                 >
-                                  <Minus size={14} />
+                                  <Minus size={12} />
                                 </button>
-                                <span className="px-2.5 text-xs text-white font-medium">{item.quantity}</span>
+                                <span className="px-2 text-xs text-charcoal font-medium">{item.quantity}</span>
                                 <button
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  className="p-1.5 text-zinc-400 hover:text-white"
+                                  className="p-1.5 text-secondary-text hover:text-charcoal"
                                 >
-                                  <Plus size={14} />
+                                  <Plus size={12} />
                                 </button>
                               </div>
 
                               {/* Remove Button */}
                               <button
                                 onClick={() => removeFromCart(item.id)}
-                                className="flex items-center text-zinc-500 hover:text-red-400 transition-colors"
+                                className="flex items-center text-secondary-text hover:text-error transition-colors p-1"
                               >
-                                <Trash2 size={16} />
+                                <Trash2 size={15} />
                               </button>
                             </div>
                           </div>
@@ -205,26 +207,26 @@ export default function Header() {
 
                   {/* Cart Footer */}
                   {cart.length > 0 && (
-                    <div className="border-t border-zinc-800 bg-zinc-950 px-6 py-6 space-y-6">
-                      <div className="flex justify-between text-base font-medium text-white">
-                        <p className="tracking-wide">Subtotal</p>
-                        <p className="text-xl font-bold text-amber-500">৳{cartTotal}</p>
+                    <div className="border-t border-soft-border bg-soft-bg px-6 py-6 space-y-6">
+                      <div className="flex justify-between text-sm font-semibold text-charcoal">
+                        <p className="tracking-wide uppercase text-xs">Subtotal</p>
+                        <p className="text-lg font-bold">৳{cartTotal}</p>
                       </div>
-                      <p className="text-xs text-zinc-500">
-                        Shipping and delivery will be calculated at checkout.
+                      <p className="text-[10px] text-secondary-text leading-relaxed">
+                        Shipping cost and delivery timeframe will be determined during checkout.
                       </p>
                       <div className="space-y-3">
                         <Link
                           href="/checkout"
                           onClick={() => setIsCartOpen(false)}
-                          className="flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-6 py-3.5 text-sm font-bold uppercase tracking-widest text-zinc-950 hover:bg-amber-400 transition-all duration-300"
+                          className="flex w-full items-center justify-center gap-2 rounded-full bg-charcoal px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-warm-bg hover:bg-secondary-text transition-all duration-300 shadow-md"
                         >
                           Checkout Now
-                          <ArrowRight size={16} className="stroke-[2.5]" />
+                          <ArrowRight size={14} className="stroke-[2]" />
                         </Link>
                         <button
                           onClick={() => setIsCartOpen(false)}
-                          className="w-full text-center text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-white transition-colors"
+                          className="w-full text-center text-[10px] font-bold tracking-widest uppercase text-secondary-text hover:text-charcoal transition-colors"
                         >
                           Continue Shopping
                         </button>

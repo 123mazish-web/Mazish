@@ -2,9 +2,8 @@
 
 import React, { use, useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowLeft, ShoppingBag, Truck, Shield, CheckCircle } from 'lucide-react'
-import { getProductById } from '@/lib/db'
+import { ArrowLeft, ShoppingBag, Truck, Shield } from 'lucide-react'
+import { getProductById, getProducts } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
 
@@ -20,6 +19,7 @@ export default function ProductPage({ params }) {
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [allProducts, setAllProducts] = useState([])
   const { addToCart } = useCart()
 
   useEffect(() => {
@@ -34,6 +34,18 @@ export default function ProductPage({ params }) {
     }
     loadProduct()
   }, [id])
+
+  useEffect(() => {
+    async function loadCatalog() {
+      const data = await getProducts()
+      if (data && data.length > 0) {
+        setAllProducts(data)
+      } else {
+        setAllProducts(DEFAULT_PRODUCTS)
+      }
+    }
+    loadCatalog()
+  }, [])
 
   useEffect(() => {
     if (product && typeof window !== 'undefined') {
@@ -59,18 +71,18 @@ export default function ProductPage({ params }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center bg-zinc-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-amber-500"></div>
+      <div className="flex min-h-[70vh] items-center justify-center bg-warm-bg transition-colors duration-300">
+        <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-primary-yellow"></div>
       </div>
     )
   }
 
   if (!product) {
     return (
-      <div className="min-h-[70vh] bg-zinc-950 px-4 py-20 text-center flex flex-col items-center justify-center">
-        <h2 className="font-luxury text-3xl text-white mb-4">Product Not Found</h2>
-        <p className="text-zinc-500 mb-8 max-w-sm font-light">The luxury piece you are looking for does not exist or has been sold out.</p>
-        <Link href="/" className="text-amber-500 border border-amber-500/30 px-6 py-2.5 rounded-full hover:bg-amber-500 hover:text-zinc-950 transition-all font-semibold uppercase text-xs tracking-wider">
+      <div className="min-h-[70vh] bg-warm-bg px-4 py-20 text-center flex flex-col items-center justify-center transition-colors duration-300">
+        <h2 className="font-luxury text-[34px] text-charcoal mb-4">Product Not Found</h2>
+        <p className="text-secondary-text mb-8 max-w-sm font-light text-[16px]">The luxury piece you are looking for does not exist or has been sold out.</p>
+        <Link href="/" className="text-charcoal border border-soft-border px-6 py-2.5 rounded-full hover:bg-secondary-bg transition-all font-semibold uppercase text-xs tracking-wider">
           Return Home
         </Link>
       </div>
@@ -84,28 +96,36 @@ export default function ProductPage({ params }) {
   }
 
   const price = product.discount_price || product.price
+  const isSoldOut = (product.stock !== undefined ? product.stock : 20) <= 0
+
+  let relatedProducts = allProducts.filter(p => p.id !== id && (p.category === product.category || p.gender === product.gender))
+  if (relatedProducts.length === 0) {
+    relatedProducts = allProducts.filter(p => p.id !== id)
+  }
+  relatedProducts = relatedProducts.slice(0, 4)
 
   return (
-    <div className="bg-zinc-950 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-warm-bg min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 pb-28 md:pb-12">
       <div className="max-w-7xl mx-auto">
+        
         {/* Back Link */}
-        <Link href="/" className="inline-flex items-center text-xs tracking-widest uppercase text-zinc-500 hover:text-white transition-colors mb-12">
-          <ArrowLeft size={16} className="mr-2" />
+        <Link href="/" className="inline-flex items-center text-xs tracking-widest uppercase text-secondary-text hover:text-charcoal transition-colors mb-12">
+          <ArrowLeft size={14} className="mr-2" />
           Back to collection
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          
           {/* Left Column - Product Image & Gallery */}
           <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-2xl border border-zinc-900 bg-zinc-900/20 aspect-square flex items-center justify-center">
-              <Image
-                src={product.images?.[activeImageIndex] || product.images?.[0]}
+            <div className="relative overflow-hidden rounded-xl border border-soft-border bg-[#FFFDF7] aspect-square flex items-center justify-center">
+              <img
+                src={product.images?.[activeImageIndex] || product.images?.[0] || '/images/Sunglass1.png'}
                 alt={product.name}
-                fill
-                className="object-cover"
+                className="object-cover w-full h-full"
               />
               {product.discount_price && (
-                <span className="absolute top-6 left-6 bg-amber-500 text-zinc-950 font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-lg">
+                <span className="absolute top-6 left-6 bg-primary-yellow text-charcoal font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-sm">
                   Special Pricing
                 </span>
               )}
@@ -118,11 +138,11 @@ export default function ProductPage({ params }) {
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-950/40 transition-all relative ${
-                      idx === activeImageIndex ? 'border-amber-500' : 'border-zinc-900 hover:border-zinc-800'
+                    className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border bg-white transition-all relative ${
+                      idx === activeImageIndex ? 'border-primary-yellow ring-2 ring-primary-yellow/20' : 'border-soft-border hover:border-charcoal/30'
                     }`}
                   >
-                    <Image src={img} alt={`${product.name} View ${idx + 1}`} fill className="object-cover" />
+                    <img src={img} alt={`${product.name} View ${idx + 1}`} className="object-cover w-full h-full" />
                   </button>
                 ))}
               </div>
@@ -132,60 +152,60 @@ export default function ProductPage({ params }) {
           {/* Right Column - Product Info */}
           <div className="flex flex-col justify-center space-y-8">
             <div className="space-y-4">
-              <span className="text-xs font-semibold text-amber-500 tracking-[0.2em] uppercase">
-                {product.category}
+              <span className="text-[12px] font-bold text-primary-yellow tracking-[0.2em] uppercase">
+                {product.category || 'Sunglasses'}
               </span>
-              <h1 className="font-luxury text-3xl sm:text-4xl lg:text-5xl text-white tracking-wide leading-tight">
+              <h1 className="font-luxury text-[34px] sm:text-[42px] text-charcoal tracking-wide leading-[1.15]">
                 {product.name}
               </h1>
               <div className="flex items-baseline space-x-4">
-                <span className="text-2xl sm:text-3xl font-bold text-amber-500">
+                <span className="text-[22px] sm:text-[26px] font-extrabold text-charcoal">
                   ৳{price}
                 </span>
                 {product.discount_price && (
-                  <span className="text-base text-zinc-600 line-through">
+                  <span className="text-sm sm:text-base text-secondary-text line-through font-normal">
                     ৳{product.price}
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="h-[1px] w-full bg-zinc-900"></div>
+            <div className="h-[1px] w-full bg-soft-border"></div>
 
             <div className="space-y-3">
-              <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Description</h3>
-              <p className="text-zinc-500 text-sm font-light leading-relaxed">
+              <h3 className="text-charcoal text-[13px] font-bold uppercase tracking-wider">Description</h3>
+              <p className="text-secondary-text text-[16px] font-light leading-relaxed">
                 {product.description}
               </p>
             </div>
 
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 pt-2">
               {/* Quantity Selector */}
               <div className="flex items-center space-x-4">
-                <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Quantity:</span>
-                <div className="flex items-center border border-zinc-800 rounded-lg bg-zinc-900/40">
+                <span className="text-secondary-text text-[13px] font-bold uppercase tracking-wider">Quantity:</span>
+                <div className="flex items-center border border-soft-border rounded-lg bg-[#F8F6F1]">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 text-zinc-400 hover:text-white"
+                    className="px-3 py-2 text-secondary-text hover:text-charcoal focus:outline-none"
                   >
                     -
                   </button>
-                  <span className="px-4 text-sm font-medium text-white">{quantity}</span>
+                  <span className="px-4 text-[16px] font-bold text-charcoal">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-2 text-zinc-400 hover:text-white"
+                    className="px-3 py-2 text-secondary-text hover:text-charcoal focus:outline-none"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              {/* Add To Cart Trigger */}
+              {/* Add To Cart Actions */}
               <div className="flex flex-col sm:flex-row gap-4">
-                {(product.stock !== undefined ? product.stock : 20) <= 0 ? (
+                {isSoldOut ? (
                   <button
                     disabled
-                    className="flex-1 flex items-center justify-center gap-3 bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold uppercase tracking-widest text-xs py-4 rounded-full cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center gap-3 bg-soft-bg border border-soft-border text-secondary-text font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg cursor-not-allowed min-h-[44px]"
                   >
                     Sold Out
                   </button>
@@ -193,16 +213,16 @@ export default function ProductPage({ params }) {
                   <>
                     <button
                       onClick={handleAddToCart}
-                      className="flex-1 flex items-center justify-center gap-3 bg-amber-500 text-zinc-950 font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-amber-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+                      className="flex-1 flex items-center justify-center gap-3 bg-primary-yellow text-charcoal font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg hover:bg-deep-yellow transition-all duration-300 shadow-sm cursor-pointer min-h-[44px]"
                     >
-                      <ShoppingBag size={16} className="stroke-[2.5]" />
+                      <ShoppingBag size={15} />
                       {added ? 'Added to Selection' : 'Add to Selection'}
                     </button>
 
                     <Link
                       href="/checkout"
                       onClick={() => addToCart(product, quantity)}
-                      className="flex-1 flex items-center justify-center border border-zinc-800 text-white font-bold uppercase tracking-widest text-xs py-4 rounded-full hover:bg-white hover:text-zinc-950 transition-all duration-300"
+                      className="flex-1 flex items-center justify-center border border-charcoal text-charcoal font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg bg-white hover:bg-secondary-bg transition-all duration-300 text-center min-h-[44px]"
                     >
                       Instant Buy Now
                     </Link>
@@ -211,22 +231,126 @@ export default function ProductPage({ params }) {
               </div>
             </div>
 
-            <div className="h-[1px] w-full bg-zinc-900"></div>
+            <div className="h-[1px] w-full bg-soft-border"></div>
 
             {/* Guarantees */}
-            <div className="grid grid-cols-2 gap-4 text-xs font-light text-zinc-500">
-              <div className="flex items-center space-x-2.5">
-                <Shield size={16} className="text-amber-500" />
-                <span>100% Genuine Luxury product</span>
+            <div className="grid grid-cols-2 gap-4 text-xs font-light text-secondary-text">
+              <div className="flex items-center space-x-2.5 font-medium text-[13px]">
+                <Shield size={16} className="text-primary-yellow" />
+                <span>100% Genuine Luxury Brand</span>
               </div>
-              <div className="flex items-center space-x-2.5">
-                <Truck size={16} className="text-amber-500" />
-                <span>Steadfast Delivery Partner</span>
+              <div className="flex items-center space-x-2.5 font-medium text-[13px]">
+                <Truck size={16} className="text-primary-yellow" />
+                <span>Steadfast Delivery Network</span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Related Products Section */}
+        {relatedProducts.length > 0 && (
+          <div className="border-t border-soft-border pt-16 mt-20 space-y-10">
+            <div className="text-center space-y-2">
+              <span className="text-primary-yellow text-[12px] sm:text-[13px] tracking-widest font-bold uppercase">Discover More</span>
+              <h2 className="font-luxury text-[26px] sm:text-[32px] text-charcoal tracking-wider uppercase">Related Products</h2>
+              <div className="h-[1px] w-12 bg-soft-border mx-auto pt-2"></div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+              {relatedProducts.map((p) => {
+                const discount = p.discount_price && p.price > p.discount_price
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/product/${p.id}`}
+                    className="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-soft-border transition-all duration-300 hover:shadow-md hover:border-charcoal/20 cursor-pointer"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-square overflow-hidden bg-soft-bg">
+                      <img
+                        src={p.images?.[0]}
+                        alt={p.name}
+                        className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+                      />
+                      {p.stock <= 0 ? (
+                        <span className="absolute top-3 left-3 bg-error text-white font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
+                          Sold Out
+                        </span>
+                      ) : discount ? (
+                        <span className="absolute top-3 left-3 bg-primary-yellow text-charcoal font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
+                          Offer
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {/* Details */}
+                    <div className="p-4 sm:p-5 flex-grow flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+                          <span>{p.category || 'Sunglasses'}</span>
+                          <span className="text-charcoal font-bold bg-soft-bg px-2 py-0.5 rounded text-[10px]">
+                            {p.gender}
+                          </span>
+                        </div>
+                        <h3 className="text-[15px] sm:text-[17px] font-bold text-charcoal tracking-wide mt-2 group-hover:text-primary-yellow transition-colors duration-200 line-clamp-1">
+                          {p.name}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
+                          <span className="text-[16px] sm:text-[18px] font-extrabold text-charcoal">
+                            ৳{p.discount_price || p.price}
+                          </span>
+                          {discount && (
+                            <span className="text-[11px] text-secondary-text line-through font-normal">
+                              ৳{p.price}
+                            </span>
+                          )}
+                        </div>
+
+                        {p.stock > 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              addToCart(p, 1)
+                            }}
+                            className="flex items-center justify-center p-2 rounded-full border border-soft-border bg-white hover:bg-primary-yellow hover:text-charcoal transition-colors focus:outline-none cursor-pointer relative z-20"
+                          >
+                            <ShoppingBag size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Sticky Mobile Add to Cart Bar */}
+      {!isSoldOut && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-soft-border px-6 py-4 flex items-center justify-between gap-4 md:hidden shadow-lg">
+          <div className="flex flex-col">
+            <span className="text-[12px] text-secondary-text font-bold uppercase tracking-wider truncate max-w-[150px]">
+              {product.name}
+            </span>
+            <span className="text-[17px] font-extrabold text-charcoal">
+              ৳{price}
+            </span>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            className="bg-primary-yellow hover:bg-deep-yellow text-charcoal text-[12px] font-bold uppercase tracking-widest px-6 py-3.5 rounded-lg transition-colors flex items-center gap-2 cursor-pointer min-h-[44px]"
+          >
+            <ShoppingBag size={12} />
+            {added ? 'Added' : 'Add Bag'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
