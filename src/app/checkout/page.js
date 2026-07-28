@@ -168,7 +168,7 @@ export default function CheckoutPage() {
           name: item.name,
           price: item.discount_price || item.price,
           quantity: item.quantity,
-          image: item.images?.[0] || '/images/Sunglass1.png'
+          image: item.images?.[0] || 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png'
         }))
       }
 

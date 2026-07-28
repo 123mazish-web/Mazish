@@ -120,7 +120,7 @@ export default function ProductPage({ params }) {
           <div className="space-y-4">
             <div className="relative overflow-hidden rounded-xl border border-soft-border bg-[#FFFDF7] aspect-square flex items-center justify-center">
               <img
-                src={product.images?.[activeImageIndex] || product.images?.[0] || '/images/Sunglass1.png'}
+                src={product.images?.[activeImageIndex] || product.images?.[0] || 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png'}
                 alt={product.name}
                 className="object-cover w-full h-full"
               />

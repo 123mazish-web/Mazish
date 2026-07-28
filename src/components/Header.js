@@ -156,12 +156,12 @@ export default function Header() {
                         <div key={item.id} className="flex py-4 border-b border-soft-border last:border-b-0">
                           {/* Image */}
                           <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-soft-border bg-soft-bg relative">
-                            <Image
-                              src={item.images?.[0] || '/images/Sunglass1.png'}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                            />
+                             <Image
+                               src={item.images?.[0] || 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png'}
+                               alt={item.name}
+                               fill
+                               className="object-cover"
+                             />
                           </div>
 
                           {/* Info */}

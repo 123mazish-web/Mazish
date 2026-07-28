@@ -12,7 +12,7 @@ export async function GET(request) {
     const fbCatalogFeed = products.map(product => {
       const imageUrl = product.images?.[0]?.startsWith('http')
         ? product.images[0]
-        : `${baseUrl}${product.images?.[0] || '/images/sunglasses-1.png'}`
+        : 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265544/sunglasses-1_wruxye.png'
 
       return {
         id: product.id,
