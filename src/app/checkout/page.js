@@ -153,10 +153,9 @@ export default function CheckoutPage() {
 
       const orderPayload = {
         customer_name: form.name.trim(),
-        customer_phone: phoneClean,
-        customer_email: form.email.trim() || null,
-        shipping_address: form.address.trim(),
-        shipping_area: form.shippingArea,
+        phone: phoneClean,
+        email: form.email.trim() || null,
+        delivery_address: form.address.trim(),
         payment_method: form.paymentMethod,
         payment_details: paymentDetails,
         total_amount: finalTotal,
@@ -173,17 +172,19 @@ export default function CheckoutPage() {
         }))
       }
 
-      const savedOrder = await createOrder(orderPayload)
+      const orderResult = await createOrder(orderPayload)
 
-      if (!savedOrder) {
+      if (!orderResult) {
         throw new Error('Failed to complete checkout. Please try again.')
       }
+
+      const finalOrder = orderResult.success ? orderResult.data : orderResult.mockOrder
 
       try {
         await fetch('/api/orders/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order: savedOrder })
+          body: JSON.stringify(finalOrder)
         })
       } catch (tgErr) {
         console.error("Telegram notify failed:", tgErr)
@@ -195,7 +196,7 @@ export default function CheckoutPage() {
         window.dataLayer.push({
           event: 'purchase',
           ecommerce: {
-            transaction_id: savedOrder.id.toString(),
+            transaction_id: finalOrder.id.toString(),
             value: finalTotal,
             currency: 'BDT',
             tax: 0,
@@ -213,7 +214,7 @@ export default function CheckoutPage() {
       }
 
       clearCart()
-      router.push(`/order-confirmation/${savedOrder.id}`)
+      router.push(`/order-confirmation/${finalOrder.id}`)
     } catch (err) {
       setError(err.message)
     } finally {
