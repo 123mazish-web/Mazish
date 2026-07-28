@@ -23,9 +23,9 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const bannerSlides = [
-    { desktop: '/images/banner1.png', mobile: '/images/banner1.png' },
-    { desktop: '/images/banner2.png', mobile: '/images/banner2.png' },
-    { desktop: '/images/banner3.png', mobile: '/images/banner3.png' }
+    { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/v1785265520/banner1_ooav5q.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/v1785265520/banner1_ooav5q.png' },
+    { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/v1785265521/banner2_ubqtfd.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/v1785265521/banner2_ubqtfd.png' },
+    { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/v1785265521/banner3_cnesab.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/v1785265521/banner3_cnesab.png' }
   ]
 
   // Auto-slide effect
@@ -301,7 +301,7 @@ export default function HomePage() {
               className="group relative overflow-hidden rounded-xl aspect-[4/5] bg-white border border-soft-border cursor-pointer block"
             >
               <img 
-                src="/images/for-him.png" 
+                src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265523/for-him_ge4azn.png" 
                 alt="For Him Collection" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -318,7 +318,7 @@ export default function HomePage() {
               className="group relative overflow-hidden rounded-xl aspect-[4/5] bg-white border border-soft-border cursor-pointer block"
             >
               <img 
-                src="/images/for-her.png" 
+                src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265521/for-her_niqyf0.png" 
                 alt="For Her Collection" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -335,7 +335,7 @@ export default function HomePage() {
               className="group relative overflow-hidden rounded-xl aspect-[4/5] bg-white border border-soft-border cursor-pointer block"
             >
               <img 
-                src="/images/unisex.png" 
+                src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265539/unisex_ihbf3q.png" 
                 alt="Unisex Collection" 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -355,7 +355,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 aspect-[3/2] relative rounded-xl overflow-hidden bg-white border border-soft-border">
             <img 
-              src="/images/jewelry_collections.png" 
+              src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265532/jewelry_collections_rlemur.png" 
               alt="MAZISH jewelry collections" 
               className="w-full h-full object-cover"
             />
@@ -422,7 +422,7 @@ export default function HomePage() {
 
           <div className="lg:col-span-7 aspect-[3/2] relative rounded-xl overflow-hidden bg-white border border-soft-border">
             <img 
-              src="/images/earrings1.png" 
+              src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265523/earrings1_otvorg.png" 
               alt="MAZISH Premium Earrings Collection" 
               className="w-full h-full object-cover"
             />
@@ -491,16 +491,16 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="relative aspect-square overflow-hidden rounded-xl bg-white border border-soft-border">
-              <img src="/images/glass1.jpeg" alt="Seen in MAZISH 1" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              <img src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265521/glass1_ygfyko.jpg" alt="Seen in MAZISH 1" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
             </div>
             <div className="relative aspect-square overflow-hidden rounded-xl bg-white border border-soft-border">
-              <img src="/images/glass2.jpeg" alt="Seen in MAZISH 2" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              <img src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265522/glass2_hfvwyo.jpg" alt="Seen in MAZISH 2" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
             </div>
             <div className="relative aspect-square overflow-hidden rounded-xl bg-white border border-soft-border">
-              <img src="/images/glass3.jpeg" alt="Seen in MAZISH 3" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              <img src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265522/glass3_hc8gf6.jpg" alt="Seen in MAZISH 3" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
             </div>
             <div className="relative aspect-square overflow-hidden rounded-xl bg-white border border-soft-border">
-              <img src="/images/glass4.jpeg" alt="Seen in MAZISH 4" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              <img src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265522/glass4_bhatvo.jpg" alt="Seen in MAZISH 4" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
             </div>
           </div>
         </div>

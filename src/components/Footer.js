@@ -13,7 +13,7 @@ export default function Footer() {
           <div className="space-y-4 md:col-span-2">
             <Link href="/" className="inline-flex items-center gap-5">
               <img
-                src="/images/main_logo.png"
+                src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265523/main_logo_ffrk6k.png"
                 alt="MAZISH"
                 className="h-10 w-auto object-contain mix-blend-multiply"
               />

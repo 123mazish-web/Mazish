@@ -45,7 +45,7 @@ export default function Header() {
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-10">
             <Link href="/" className="inline-flex items-center justify-center gap-5">
               <img
-                src="/images/main_logo.png"
+                src="https://res.cloudinary.com/kp0jicx3/image/upload/v1785265523/main_logo_ffrk6k.png"
                 alt="MAZISH"
                 className="h-10 w-auto object-contain mix-blend-multiply"
               />
