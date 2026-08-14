@@ -409,7 +409,7 @@ export default function HomePage() {
                 </button>
               </div>
               <p className="text-[12px] text-secondary-text/80 font-light">
-                * We value your privacy. We'll only send launch notifications.
+                * We value your privacy. We&apos;ll only send launch notifications.
               </p>
             </form>
 
@@ -444,7 +444,7 @@ export default function HomePage() {
               {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
             </div>
             <p className="text-charcoal text-[16px] font-light italic leading-relaxed">
-              "Chashmar frame-ta khubee solid ar heavy, amar mukheo khub bhalo set hoyeche. Delivery fast chilo, r glass er finish dekhte ekdom premium lage."
+              &quot;Chashmar frame-ta khubee solid ar heavy, amar mukheo khub bhalo set hoyeche. Delivery fast chilo, r glass er finish dekhte ekdom premium lage.&quot;
             </p>
             <div>
               <p className="text-charcoal font-bold text-sm">Zayan H.</p>
@@ -457,7 +457,7 @@ export default function HomePage() {
               {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
             </div>
             <p className="text-charcoal text-[16px] font-light italic leading-relaxed">
-              "Argentina Special Edition order koresilam. Polarized lens er quality khub bhalo ar sky blue detailgulo oshadharon. Customer service niye ami khub satisfied."
+              &quot;Argentina Special Edition order koresilam. Polarized lens er quality khub bhalo ar sky blue detailgulo oshadharon. Customer service niye ami khub satisfied.&quot;
             </p>
             <div>
               <p className="text-charcoal font-bold text-sm">Arif R.</p>
@@ -470,7 +470,7 @@ export default function HomePage() {
               {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
             </div>
             <p className="text-charcoal text-[16px] font-light italic leading-relaxed">
-              "Ekdom clean style, unisex fit. Packaging ta khultei monay holo kono high-end luxury brand unbox korchi. Highly recommended!"
+              &quot;Ekdom clean style, unisex fit. Packaging ta khultei monay holo kono high-end luxury brand unbox korchi. Highly recommended!&quot;
             </p>
             <div>
               <p className="text-charcoal font-bold text-sm">Mitali Khan</p>

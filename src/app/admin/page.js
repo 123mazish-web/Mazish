@@ -53,7 +53,7 @@ export default function AdminPage() {
     description: '',
     price: '',
     discount_price: '',
-    image_url: '/images/Sunglass1.png',
+    image_url: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png',
     category: 'Sunglasses',
     gender: 'Unisex',
     stock: 20,

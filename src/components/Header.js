@@ -13,8 +13,10 @@ export default function Header() {
 
   // Timer State (1500 seconds = 25 minutes)
   const [timeLeft, setTimeLeft] = useState(1500)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev <= 1 ? 1500 : prev - 1))
     }, 1000)
@@ -31,13 +33,15 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-40 w-full border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
         {/* Summer Promo Bar */}
-        <div className="w-full bg-charcoal text-[#F8F6F1] text-center py-2 px-4 text-[13px] sm:text-[14px] font-bold uppercase tracking-wider border-b border-soft-border/30 flex items-center justify-center gap-1.5 flex-wrap">
-          <span>Get 5% off with code:</span>
-          <span className="text-primary-yellow font-extrabold px-1">SUMMER</span>
-          <span className="mx-1 opacity-70">•</span>
-          <span>Offer ends in:</span>
-          <span className="text-primary-yellow font-mono text-[16px] sm:text-[18px] font-extrabold tracking-widest px-2 bg-charcoal-light/20 rounded inline-block min-w-[70px] text-center">{formatTime(timeLeft)}</span>
-        </div>
+        {mounted && (
+          <div className="w-full bg-charcoal text-[#F8F6F1] text-center py-2 px-4 text-[13px] sm:text-[14px] font-bold uppercase tracking-wider border-b border-soft-border/30 flex items-center justify-center gap-1.5 flex-wrap">
+            <span>Get 5% off with code:</span>
+            <span className="text-primary-yellow font-extrabold px-1">SUMMER</span>
+            <span className="mx-1 opacity-70">•</span>
+            <span>Offer ends in:</span>
+            <span className="text-primary-yellow font-mono text-[16px] sm:text-[18px] font-extrabold tracking-widest px-2 bg-charcoal-light/20 rounded inline-block min-w-[70px] text-center">{formatTime(timeLeft)}</span>
+          </div>
+        )}
         <div className="mx-auto relative flex max-w-7xl h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
           
           {/* Left Side Navigation Links - Desktop & Mobile Toggle + Icon Logo */}
@@ -97,7 +101,7 @@ export default function Header() {
               aria-label="Open Cart"
             >
               <ShoppingBag size={20} className="stroke-[1.7]" />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary-yellow text-[10px] font-bold text-charcoal ring-2 ring-warm-bg">
                   {cartCount}
                 </span>
@@ -180,11 +184,10 @@ export default function Header() {
                         <div key={item.id} className="flex py-4 border-b border-soft-border last:border-b-0">
                           {/* Image */}
                           <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-soft-border bg-soft-bg relative">
-                             <Image
+                             <img
                                src={item.images?.[0] || 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png'}
                                alt={item.name}
-                               fill
-                               className="object-cover"
+                               className="object-cover w-full h-full"
                              />
                           </div>
 

@@ -3,15 +3,15 @@ const path = require('path')
 require('dotenv').config({ path: path.resolve(__dirname, '.env.local') })
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("Supabase URL or Anon Key is missing in .env.local.")
+if (!supabaseUrl || !supabaseKey) {
+  console.error("Supabase URL or Key is missing in .env.local.")
   process.exit(1)
 }
 
 const ws = require('ws')
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { persistSession: false },
   realtime: {
     transport: ws
@@ -31,7 +31,7 @@ const DEFAULT_PRODUCTS = [
     description: "Handcrafted lightweight metal frame. Features scratch-resistant polarized lenses that provide 100% UV protection. Designed for the ultimate luxury statement.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass1.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png"],
     category: "Sunglasses",
     gender: "Men",
     stock: 25,
@@ -42,7 +42,7 @@ const DEFAULT_PRODUCTS = [
     description: "Deep obsidian black acetate frame with gradient dark lenses. A classic, timeless silhouette that exudes authority and mystery.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass2.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265546/Sunglass2_wdp7pd.png"],
     category: "Sunglasses",
     gender: "Unisex",
     stock: 18,
@@ -53,7 +53,7 @@ const DEFAULT_PRODUCTS = [
     description: "Translucent rose gold frame paired with soft-tinted mirrored lenses. Highly durable double-bridge construction offering unmatched comfort.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass3.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265546/Sunglass3_ntwbuu.png"],
     category: "Sunglasses",
     gender: "Women",
     stock: 15,
@@ -64,7 +64,7 @@ const DEFAULT_PRODUCTS = [
     description: "Silver hexagonal frame with blue-gradient lenses. Extremely lightweight construction using surgical-grade stainless steel.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass4.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265529/Sunglass4_xnpmjd.png"],
     category: "Sunglasses",
     gender: "Unisex",
     stock: 20,
@@ -75,7 +75,7 @@ const DEFAULT_PRODUCTS = [
     description: "Tortoiseshell patterned acetate frame with amber tinted lenses. A warm, vintage-inspired design that complements any modern luxury wardrobe.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass5.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass5_tfepso.png"],
     category: "Sunglasses",
     gender: "Unisex",
     stock: 12,
@@ -86,7 +86,7 @@ const DEFAULT_PRODUCTS = [
     description: "Sleek aerodynamic wrap-around frames built for active luxury. Polarized high-contrast lenses for maximum clarity.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass6.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265531/Sunglass6_wp3up1.png"],
     category: "Sunglasses",
     gender: "Men",
     stock: 30,
@@ -97,7 +97,7 @@ const DEFAULT_PRODUCTS = [
     description: "Clubmaster-style frames combining premium tortoiseshell acetate with gold metal accents. Exudes academic luxury.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass7.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265532/Sunglass7_hpacvz.png"],
     category: "Sunglasses",
     gender: "Men",
     stock: 14,
@@ -108,7 +108,7 @@ const DEFAULT_PRODUCTS = [
     description: "Rimless futuristic shields with iridescent violet-to-blue gradient lenses. Express your unique cyberpunk luxury look.",
     price: 1500,
     discount_price: 1399,
-    images: ["/images/Sunglass8.png"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265533/Sunglass8_k8vq5y.png"],
     category: "Sunglasses",
     gender: "Women",
     stock: 10,
@@ -119,7 +119,7 @@ const DEFAULT_PRODUCTS = [
     description: "Special FIFA Edition. Show your pride for the Seleção with this handcrafted luxury piece featuring signature green and gold acetate details and polarized golden-yellow gradient lenses.",
     price: 1500,
     discount_price: 799,
-    images: ["/images/Brazil1.jpg", "/images/Brazil2.jpg", "/images/Brazil3.jpg", "/images/Brazil4.jpg", "/images/Brazil5.jpg", "/images/Brazil6.jpg"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/glass1_ygfyko.jpg"],
     category: "FIFA Special Edition",
     gender: "Unisex",
     stock: 50,
@@ -130,7 +130,7 @@ const DEFAULT_PRODUCTS = [
     description: "Special FIFA Edition. Celebrate the Albiceleste with this handcrafted luxury frame featuring pristine sky-blue and white accents, fitted with high-contrast polarized lenses.",
     price: 1500,
     discount_price: 799,
-    images: ["/images/Argentina1.jpg", "/images/Argentina2.jpg", "/images/Argentina3.jpg"],
+    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265522/glass2_hfvwyo.jpg"],
     category: "FIFA Special Edition",
     gender: "Unisex",
     stock: 50,

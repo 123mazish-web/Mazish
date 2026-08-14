@@ -5,28 +5,26 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 const CartContext = createContext(null)
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState([])
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('mazish_cart')
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart))
-      } catch (e) {
-        console.error('Failed to parse cart data', e)
+  const [cart, setCart] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('mazish_cart')
+      if (savedCart) {
+        try {
+          return JSON.parse(savedCart)
+        } catch (e) {
+          console.error('Failed to parse cart data', e)
+        }
       }
     }
-    setIsLoaded(true)
-  }, [])
+    return []
+  })
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (isLoaded) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('mazish_cart', JSON.stringify(cart))
     }
-  }, [cart, isLoaded])
+  }, [cart])
 
   const addToCart = (product, quantity = 1) => {
     if (typeof window !== 'undefined') {
