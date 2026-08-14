@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ShoppingBag, Menu, X, Trash2, Plus, Minus, ArrowRight } from 'lucide-react'
@@ -11,9 +11,33 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
 
+  // Timer State (1500 seconds = 25 minutes)
+  const [timeLeft, setTimeLeft] = useState(1500)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev <= 1 ? 1500 : prev - 1))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
+        {/* Summer Promo Bar */}
+        <div className="w-full bg-charcoal text-[#F8F6F1] text-center py-2 px-4 text-[13px] sm:text-[14px] font-bold uppercase tracking-wider border-b border-soft-border/30 flex items-center justify-center gap-1.5 flex-wrap">
+          <span>Get 5% off with code:</span>
+          <span className="text-primary-yellow font-extrabold px-1">SUMMER</span>
+          <span className="mx-1 opacity-70">•</span>
+          <span>Offer ends in:</span>
+          <span className="text-primary-yellow font-mono text-[16px] sm:text-[18px] font-extrabold tracking-widest px-2 bg-charcoal-light/20 rounded inline-block min-w-[70px] text-center">{formatTime(timeLeft)}</span>
+        </div>
         <div className="mx-auto relative flex max-w-7xl h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
           
           {/* Left Side Navigation Links - Desktop & Mobile Toggle + Icon Logo */}

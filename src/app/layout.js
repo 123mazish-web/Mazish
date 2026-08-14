@@ -19,6 +19,7 @@ const manrope = Manrope({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://mazish.shop'),
   title: "MAZISH | Curated Premium Fashion & Eyewear in Bangladesh",
   description: "Discover premium, high-end fashion, luxury accessories, and statements starting with our curated sunglasses collection. Elevate your identity with Mazish.",
   openGraph: {

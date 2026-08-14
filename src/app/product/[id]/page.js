@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingBag, Truck, Shield } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Truck, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getProductById, getProducts } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
@@ -21,6 +21,18 @@ export default function ProductPage({ params }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [allProducts, setAllProducts] = useState([])
   const { addToCart } = useCart()
+
+  const handlePrevImage = () => {
+    if (product?.images && product.images.length > 0) {
+      setActiveImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))
+    }
+  }
+
+  const handleNextImage = () => {
+    if (product?.images && product.images.length > 0) {
+      setActiveImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))
+    }
+  }
 
   useEffect(() => {
     async function loadProduct() {
@@ -126,60 +138,101 @@ export default function ProductPage({ params }) {
               />
               {product.discount_price && (
                 <span className="absolute top-6 left-6 bg-primary-yellow text-charcoal font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-sm">
-                  Special Pricing
+                  ৳{product.price - product.discount_price} OFF
                 </span>
               )}
             </div>
             
             {/* Gallery Thumbnails */}
             {product.images && product.images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {product.images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border bg-white transition-all relative ${
-                      idx === activeImageIndex ? 'border-primary-yellow ring-2 ring-primary-yellow/20' : 'border-soft-border hover:border-charcoal/30'
-                    }`}
-                  >
-                    <img src={img} alt={`${product.name} View ${idx + 1}`} className="object-cover w-full h-full" />
-                  </button>
-                ))}
+              <div className="relative group w-full">
+                {/* Left Arrow */}
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute -left-4 top-10 -translate-y-1/2 z-10 bg-white hover:bg-soft-bg text-charcoal border border-soft-border h-8 w-8 rounded-full flex items-center justify-center shadow-md transition-all focus:outline-none cursor-pointer"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                {/* Thumbnail Strip */}
+                <div className="flex gap-3 overflow-x-auto pb-2 px-6 scrollbar-thin">
+                  {product.images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border bg-white transition-all relative ${
+                        idx === activeImageIndex ? 'border-primary-yellow ring-2 ring-primary-yellow/20' : 'border-soft-border hover:border-charcoal/30'
+                      }`}
+                    >
+                      <img src={img} alt={`${product.name} View ${idx + 1}`} className="object-cover w-full h-full" />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Right Arrow */}
+                <button
+                  onClick={handleNextImage}
+                  className="absolute -right-4 top-10 -translate-y-1/2 z-10 bg-white hover:bg-soft-bg text-charcoal border border-soft-border h-8 w-8 rounded-full flex items-center justify-center shadow-md transition-all focus:outline-none cursor-pointer"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             )}
           </div>
 
           {/* Right Column - Product Info */}
-          <div className="flex flex-col justify-center space-y-8">
-            <div className="space-y-4">
+          <div className="flex flex-col justify-center space-y-5">
+            <div className="space-y-2">
               <span className="text-[12px] font-bold text-primary-yellow tracking-[0.2em] uppercase">
                 {product.category || 'Sunglasses'}
               </span>
-              <h1 className="font-luxury text-[34px] sm:text-[42px] text-charcoal tracking-wide leading-[1.15]">
+              <h1 className="font-luxury text-[30px] sm:text-[36px] text-charcoal tracking-wide leading-[1.15]">
                 {product.name}
               </h1>
-              <div className="flex items-baseline space-x-4">
-                <span className="text-[22px] sm:text-[26px] font-extrabold text-charcoal">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="text-[32px] sm:text-[38px] font-extrabold text-charcoal">
                   ৳{price}
                 </span>
                 {product.discount_price && (
-                  <span className="text-sm sm:text-base text-secondary-text line-through font-normal">
-                    ৳{product.price}
-                  </span>
+                  <>
+                    <span className="text-lg sm:text-xl text-secondary-text line-through font-normal">
+                      ৳{product.price}
+                    </span>
+                    <span className="bg-primary-yellow text-charcoal font-bold text-xs sm:text-sm tracking-wider uppercase px-3 py-1 rounded">
+                      ৳{product.price - product.discount_price} OFF
+                    </span>
+                  </>
                 )}
               </div>
             </div>
 
             <div className="h-[1px] w-full bg-soft-border"></div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <h3 className="text-charcoal text-[13px] font-bold uppercase tracking-wider">Description</h3>
-              <p className="text-secondary-text text-[16px] font-light leading-relaxed">
-                {product.description}
-              </p>
+              <ul className="space-y-2.5 pt-1">
+                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
+                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
+                  <span>Glass + Box</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
+                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
+                  <span>100% Cash On Delivery</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
+                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
+                  <span>Imported Products</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
+                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
+                  <span>High Quality Products</span>
+                </li>
+              </ul>
             </div>
 
-            <div className="space-y-6 pt-2">
+            <div className="space-y-4 pt-1">
               {/* Quantity Selector */}
               <div className="flex items-center space-x-4">
                 <span className="text-secondary-text text-[13px] font-bold uppercase tracking-wider">Quantity:</span>
@@ -201,11 +254,11 @@ export default function ProductPage({ params }) {
               </div>
 
               {/* Add To Cart Actions */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col gap-4 w-full">
                 {isSoldOut ? (
                   <button
                     disabled
-                    className="flex-1 flex items-center justify-center gap-3 bg-soft-bg border border-soft-border text-secondary-text font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg cursor-not-allowed min-h-[44px]"
+                    className="w-full flex items-center justify-center gap-3 bg-soft-bg border border-soft-border text-secondary-text font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg cursor-not-allowed min-h-[44px]"
                   >
                     Sold Out
                   </button>
@@ -213,18 +266,18 @@ export default function ProductPage({ params }) {
                   <>
                     <button
                       onClick={handleAddToCart}
-                      className="flex-1 flex items-center justify-center gap-3 bg-primary-yellow text-charcoal font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg hover:bg-deep-yellow transition-all duration-300 shadow-sm cursor-pointer min-h-[44px]"
+                      className="w-full flex items-center justify-center gap-3 bg-charcoal text-white font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg hover:bg-charcoal/90 transition-all duration-300 shadow-sm cursor-pointer min-h-[44px]"
                     >
                       <ShoppingBag size={15} />
-                      {added ? 'Added to Selection' : 'Add to Selection'}
+                      {added ? 'Added to Cart' : 'Add to Cart'}
                     </button>
 
                     <Link
                       href="/checkout"
                       onClick={() => addToCart(product, quantity)}
-                      className="flex-1 flex items-center justify-center border border-charcoal text-charcoal font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg bg-white hover:bg-secondary-bg transition-all duration-300 text-center min-h-[44px]"
+                      className="w-full flex items-center justify-center gap-3 bg-primary-yellow text-charcoal font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg hover:bg-deep-yellow transition-all duration-300 text-center min-h-[44px]"
                     >
-                      Instant Buy Now
+                      Buy Now
                     </Link>
                   </>
                 )}
@@ -234,14 +287,14 @@ export default function ProductPage({ params }) {
             <div className="h-[1px] w-full bg-soft-border"></div>
 
             {/* Guarantees */}
-            <div className="grid grid-cols-2 gap-4 text-xs font-light text-secondary-text">
-              <div className="flex items-center space-x-2.5 font-medium text-[13px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-light text-secondary-text pt-2">
+              <div className="flex items-center space-x-2.5 font-medium text-[14px]">
                 <Shield size={16} className="text-primary-yellow" />
-                <span>100% Genuine Luxury Brand</span>
+                <span>চেক করে পেমেন্ট সুবিধা</span>
               </div>
-              <div className="flex items-center space-x-2.5 font-medium text-[13px]">
+              <div className="flex items-center space-x-2.5 font-medium text-[14px]">
                 <Truck size={16} className="text-primary-yellow" />
-                <span>Steadfast Delivery Network</span>
+                <span>সারাদেশে ক্যাশ অন ডেলিভারি</span>
               </div>
             </div>
           </div>
@@ -278,7 +331,7 @@ export default function ProductPage({ params }) {
                         </span>
                       ) : discount ? (
                         <span className="absolute top-3 left-3 bg-primary-yellow text-charcoal font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
-                          Offer
+                          ৳{p.price - p.discount_price} OFF
                         </span>
                       ) : null}
                     </div>

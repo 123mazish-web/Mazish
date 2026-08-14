@@ -79,7 +79,7 @@ export default function ForHerPage() {
                       </span>
                     ) : discount ? (
                       <span className="absolute top-3 left-3 bg-primary-yellow text-charcoal font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
-                        Offer
+                        ৳{product.price - product.discount_price} OFF
                       </span>
                     ) : null}
                   </div>
