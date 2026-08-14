@@ -77,6 +77,19 @@ export default function CheckoutPage() {
     setPromoError('')
     setPromoLoading(true)
 
+    const localCodes = ['MAZISH10', 'LAUNCH950', 'SUMMER']
+    if (localCodes.includes(code)) {
+      const mockPromo = {
+        code,
+        discount_type: code === 'LAUNCH950' ? 'fixed' : 'percentage',
+        discount_value: code === 'LAUNCH950' ? 150 : (code === 'SUMMER' ? 5 : 10)
+      }
+      setAppliedPromo(mockPromo)
+      setPromoCode('')
+      setPromoLoading(false)
+      return
+    }
+
     try {
       const { data, error } = await supabase
         .from('promo_codes')
