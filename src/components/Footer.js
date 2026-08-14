@@ -1,7 +1,19 @@
-'use client'
-
 import React from 'react'
 import Link from 'next/link'
+
+const FacebookIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+)
+
+const InstagramIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+)
 
 export default function Footer() {
   return (
@@ -21,14 +33,14 @@ export default function Footer() {
                 MAZISH
               </span>
             </Link>
-            <p className="text-secondary-text text-sm max-w-sm font-light leading-relaxed">
-              The Hub of Fashion & Luxury in Bangladesh. Elevating identity with premium handcrafted sunglasses and curated fashion essentials for men and women.
+            <p className="text-sm text-secondary-text max-w-sm leading-relaxed">
+              Premium fashion and curated statements for individuals who define luxury on their own terms.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-charcoal text-[12px] font-bold uppercase tracking-widest">Shop & Discover</h4>
+            <h4 className="text-charcoal text-[12px] font-bold uppercase tracking-widest">Explore</h4>
             <ul className="space-y-2.5 text-sm font-medium text-secondary-text">
               <li>
                 <Link href="/" className="hover:text-primary-yellow transition-colors">Home</Link>
@@ -47,13 +59,15 @@ export default function Footer() {
             <h4 className="text-charcoal text-[12px] font-bold uppercase tracking-widest">Connect</h4>
             <ul className="space-y-2.5 text-sm font-medium text-secondary-text">
               <li>
-                <a href="https://www.facebook.com/profile.php?id=61590005602732" target="_blank" rel="noopener noreferrer" className="hover:text-primary-yellow transition-colors">
-                  Facebook Page
+                <a href="https://www.facebook.com/profile.php?id=61590005602732" target="_blank" rel="noopener noreferrer" className="hover:text-primary-yellow transition-colors inline-flex items-center gap-2">
+                  <FacebookIcon className="stroke-[1.7]" />
+                  <span>Facebook Page</span>
                 </a>
               </li>
               <li>
-                <a href="https://www.instagram.com/123mazish/" target="_blank" rel="noopener noreferrer" className="hover:text-primary-yellow transition-colors">
-                  Instagram
+                <a href="https://www.instagram.com/123mazish/" target="_blank" rel="noopener noreferrer" className="hover:text-primary-yellow transition-colors inline-flex items-center gap-2">
+                  <InstagramIcon className="stroke-[1.7]" />
+                  <span>Instagram</span>
                 </a>
               </li>
               <li className="pt-2 border-t border-soft-border/50">
