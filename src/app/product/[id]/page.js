@@ -120,11 +120,7 @@ export default function ProductPage({ params }) {
     <div className="bg-warm-bg min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 pb-28 md:pb-12">
       <div className="max-w-7xl mx-auto">
         
-        {/* Back Link */}
-        <Link href="/" className="inline-flex items-center text-xs tracking-widest uppercase text-secondary-text hover:text-charcoal transition-colors mb-12">
-          <ArrowLeft size={14} className="mr-2" />
-          Back to collection
-        </Link>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           

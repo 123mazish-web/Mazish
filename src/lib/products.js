@@ -15,8 +15,8 @@ export const DEFAULT_PRODUCTS = [
     id: "sunglasses-2",
     name: "MAZISH Onyx Shadow",
     description: "Deep obsidian black acetate frame with gradient dark lenses. A classic, timeless silhouette that exudes authority and mystery.",
-    price: 1500,
-    discount_price: 1399,
+    price: 2000,
+    discount_price: 1799,
     images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265546/Sunglass2_wdp7pd.png"],
     category: "Sunglasses",
     gender: "Unisex",
@@ -94,29 +94,5 @@ export const DEFAULT_PRODUCTS = [
     gender: "Women",
     stock: 10,
     is_featured: false
-  },
-  {
-    id: "fifa-brazil",
-    name: "MAZISH Handcrafted Brazil Edition",
-    description: "Special FIFA Edition. Show your pride for the Seleção with this handcrafted luxury piece featuring signature green and gold acetate details and polarized golden-yellow gradient lenses.",
-    price: 1500,
-    discount_price: 799,
-    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/glass1_ygfyko.jpg"],
-    category: "FIFA Special Edition",
-    gender: "Unisex",
-    stock: 50,
-    is_featured: true
-  },
-  {
-    id: "fifa-argentina",
-    name: "MAZISH Handcrafted Argentina Edition",
-    description: "Special FIFA Edition. Celebrate the Albiceleste with this handcrafted luxury frame featuring pristine sky-blue and white accents, fitted with high-contrast polarized lenses.",
-    price: 1500,
-    discount_price: 799,
-    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265522/glass2_hfvwyo.jpg"],
-    category: "FIFA Special Edition",
-    gender: "Unisex",
-    stock: 50,
-    is_featured: true
   }
 ]
