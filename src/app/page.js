@@ -56,15 +56,8 @@ export default function HomePage() {
     loadData()
   }, [])
 
-  // Filter products dynamically
-  const filteredProducts = products.filter(p => {
-    if (activeFilter === 'All') return p.is_featured
-    if (activeFilter === 'Men') return p.gender === 'Men' && p.is_featured
-    if (activeFilter === 'Women') return p.gender === 'Women' && p.is_featured
-    if (activeFilter === 'Unisex') return p.gender === 'Unisex' && p.is_featured
-    if (activeFilter === 'Limited Edition') return p.category === 'FIFA Special Edition'
-    return p.is_featured
-  }).slice(0, 4)
+  // Display all products (up to 4)
+  const filteredProducts = products.slice(0, 4)
 
   const handleNotifySubmit = async (e) => {
     e.preventDefault()
@@ -182,22 +175,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Categories Tab Filters */}
-        <div className="flex justify-center flex-wrap gap-2.5 mb-16">
-          {['All', 'Men', 'Unisex', 'Women'].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveFilter(cat)}
-              className={`px-6 py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold tracking-wider uppercase border transition-all duration-300 ${
-                activeFilter === cat 
-                  ? 'bg-primary-yellow text-charcoal border-primary-yellow font-bold' 
-                  : 'border-soft-border bg-white text-secondary-text hover:text-charcoal hover:border-charcoal'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+
 
         {loading ? (
           <div className="flex h-64 items-center justify-center">
@@ -273,13 +251,13 @@ export default function HomePage() {
               })}
             </div>
 
-            <div className="text-center pt-4">
+            <div className="text-center pt-8">
               <Link
                 href="/shop"
-                className="inline-flex items-center justify-center min-h-[44px] gap-2 border border-charcoal bg-white text-[14px] font-bold tracking-widest uppercase text-charcoal hover:bg-secondary-bg px-8 rounded-full transition-all duration-300"
+                className="inline-flex items-center justify-center min-h-[48px] gap-2.5 bg-primary-yellow text-[15px] font-extrabold tracking-widest uppercase text-charcoal hover:bg-deep-yellow px-10 rounded-full transition-all duration-300 shadow-sm"
               >
-                Explore All Products
-                <ArrowRight size={14} />
+                Explore Full Collection
+                <ArrowRight size={16} />
               </Link>
             </div>
           </div>

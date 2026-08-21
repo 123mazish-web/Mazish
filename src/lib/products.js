@@ -1,17 +1,5 @@
 export const DEFAULT_PRODUCTS = [
   {
-    id: "sunglasses-1",
-    name: "MAZISH Classic Aviator",
-    description: "Handcrafted lightweight metal frame. Features scratch-resistant polarized lenses that provide 100% UV protection. Designed for the ultimate luxury statement.",
-    price: 1500,
-    discount_price: 1399,
-    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png"],
-    category: "Sunglasses",
-    gender: "Men",
-    stock: 25,
-    is_featured: true
-  },
-  {
     id: "sunglasses-2",
     name: "MAZISH Onyx Shadow",
     description: "Deep obsidian black acetate frame with gradient dark lenses. A classic, timeless silhouette that exudes authority and mystery.",
@@ -21,18 +9,6 @@ export const DEFAULT_PRODUCTS = [
     category: "Sunglasses",
     gender: "Unisex",
     stock: 18,
-    is_featured: true
-  },
-  {
-    id: "sunglasses-3",
-    name: "MAZISH Lumina Rose",
-    description: "Translucent rose gold frame paired with soft-tinted mirrored lenses. Highly durable double-bridge construction offering unmatched comfort.",
-    price: 1500,
-    discount_price: 1399,
-    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265546/Sunglass3_ntwbuu.png"],
-    category: "Sunglasses",
-    gender: "Women",
-    stock: 15,
     is_featured: true
   },
   {
@@ -46,18 +22,6 @@ export const DEFAULT_PRODUCTS = [
     gender: "Unisex",
     stock: 20,
     is_featured: true
-  },
-  {
-    id: "sunglasses-5",
-    name: "MAZISH Elysian Amber",
-    description: "Tortoiseshell patterned acetate frame with amber tinted lenses. A warm, vintage-inspired design that complements any modern luxury wardrobe.",
-    price: 1500,
-    discount_price: 1399,
-    images: ["https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass5_tfepso.png"],
-    category: "Sunglasses",
-    gender: "Unisex",
-    stock: 12,
-    is_featured: false
   },
   {
     id: "sunglasses-6",
@@ -94,5 +58,23 @@ export const DEFAULT_PRODUCTS = [
     gender: "Women",
     stock: 10,
     is_featured: false
+  },
+  {
+    id: "sunglasses-9",
+    name: "MAZISH Apex Horizon",
+    description: "Sleek double-bridge metal aviators combined with durable acetate temples. Equipped with premium polarized lenses offering 100% UV protection and exceptional visual clarity.",
+    price: 1950,
+    discount_price: 1799,
+    images: [
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1787335305/mazish/MAZISH_Apex_Horizon_img1.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1787335306/mazish/MAZISH_Apex_Horizon_img2.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1787335307/mazish/MAZISH_Apex_Horizon_img3.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1787335308/mazish/MAZISH_Apex_Horizon_img4.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1787335309/mazish/MAZISH_Apex_Horizon_img5.jpg"
+    ],
+    category: "Sunglasses",
+    gender: "Unisex",
+    stock: 25,
+    is_featured: true
   }
 ]
