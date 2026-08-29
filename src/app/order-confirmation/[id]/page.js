@@ -51,6 +51,12 @@ export default function OrderConfirmationPage({ params, searchParams }) {
 
   useEffect(() => {
     if (order && typeof window !== 'undefined') {
+      const trackedOrders = JSON.parse(localStorage.getItem('mazish_tracked_orders') || '[]')
+      if (trackedOrders.includes(order.id)) {
+        console.log(`Order ${order.id} already tracked. Skipping duplicate dataLayer push.`);
+        return
+      }
+
       window.dataLayer = window.dataLayer || []
       window.dataLayer.push({ ecommerce: null })
       window.dataLayer.push({
@@ -72,6 +78,10 @@ export default function OrderConfirmationPage({ params, searchParams }) {
           }))
         }
       })
+
+      // Mark as tracked
+      trackedOrders.push(order.id)
+      localStorage.setItem('mazish_tracked_orders', JSON.stringify(trackedOrders))
     }
   }, [order])
 

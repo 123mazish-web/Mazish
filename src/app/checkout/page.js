@@ -203,28 +203,7 @@ export default function CheckoutPage() {
         console.error("Telegram notify failed:", tgErr)
       }
 
-      if (typeof window !== 'undefined') {
-        window.dataLayer = window.dataLayer || []
-        window.dataLayer.push({ ecommerce: null })
-        window.dataLayer.push({
-          event: 'purchase',
-          ecommerce: {
-            transaction_id: finalOrder.id.toString(),
-            value: finalTotal,
-            currency: 'BDT',
-            tax: 0,
-            shipping: shippingCost,
-            items: cart.map(item => ({
-              item_id: item.id,
-              item_name: item.name,
-              price: item.discount_price || item.price,
-              item_category: item.category,
-              item_gender: item.gender,
-              quantity: item.quantity
-            }))
-          }
-        })
-      }
+
 
       clearCart()
       router.push(`/order-confirmation/${finalOrder.id}`)
