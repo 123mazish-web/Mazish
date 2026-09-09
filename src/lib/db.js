@@ -75,7 +75,7 @@ export async function getProductById(id) {
 
   // Fallback to default products if not found in Supabase
   if (!product) {
-    product = DEFAULT_PRODUCTS.find(p => p.id === id) || null
+    product = DEFAULT_PRODUCTS.find(p => p.id === id || p.legacy_id === id) || null
   }
 
   // Merge client-side localStorage edits

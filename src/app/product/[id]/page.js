@@ -12,7 +12,7 @@ export default function ProductPage({ params }) {
   const id = unwrappedParams?.id
   
   // Optimistically load from static fallback to make the page open instantly
-  const initialProduct = DEFAULT_PRODUCTS.find(p => p.id === id) || null
+  const initialProduct = DEFAULT_PRODUCTS.find(p => p.id === id || p.legacy_id === id) || null
 
   const [product, setProduct] = useState(initialProduct)
   const [loading, setLoading] = useState(initialProduct ? false : true)
