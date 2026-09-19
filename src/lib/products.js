@@ -124,5 +124,25 @@ export const DEFAULT_PRODUCTS = [
     gender: "Unisex",
     stock: 18,
     is_featured: true
+  },
+  {
+    id: "ef764119-12fe-43b3-83af-f9cf94f1d316",
+    name: "MAZISH Cheetah Luxury",
+    description: "Bold cheetah-print inspired luxury acetate frames with high-clarity gradient lenses. Engineered with gold-accented metal hardware, ergonomic temples, and 100% UV400 protection. Designed for an unmatched statement of elegance, confidence, and prestige.",
+    price: 2300,
+    discount_price: 1799,
+    images: [
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838425/mazish/MAZISH_Cheetah_Luxury_img1.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838427/mazish/MAZISH_Cheetah_Luxury_img2.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838429/mazish/MAZISH_Cheetah_Luxury_img3.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838430/mazish/MAZISH_Cheetah_Luxury_img4.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838431/mazish/MAZISH_Cheetah_Luxury_img5.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838434/mazish/MAZISH_Cheetah_Luxury_img6.jpg"
+    ],
+    category: "Sunglasses",
+    gender: "Unisex",
+    stock: 25,
+    is_featured: true
   }
 ]
+
