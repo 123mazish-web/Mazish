@@ -114,11 +114,15 @@ export default function ProductPage({ params }) {
   if (relatedProducts.length === 0) {
     relatedProducts = allProducts.filter(p => p.id !== id)
   }
+  const catalogList = allProducts.length > 0 ? allProducts : DEFAULT_PRODUCTS
+  const inStockProducts = catalogList.filter(p => p.id !== id && (p.stock === undefined || p.stock > 0)).slice(0, 4)
   relatedProducts = relatedProducts.slice(0, 4)
 
   return (
-    <div className="bg-warm-bg min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 pb-28 md:pb-12">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-warm-bg min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 pb-28 md:pb-12 relative overflow-hidden">
+      
+      {/* Blurred container when product is stock out */}
+      <div className={`max-w-7xl mx-auto transition-all duration-500 ${isSoldOut ? 'blur-[4px] opacity-40 pointer-events-none select-none' : ''}`}>
         
 
 
@@ -132,7 +136,11 @@ export default function ProductPage({ params }) {
                 alt={product.name}
                 className="object-cover w-full h-full"
               />
-              {product.discount_price && (
+              {isSoldOut ? (
+                <span className="absolute top-6 left-6 bg-red-600 text-white font-extrabold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-md z-10">
+                  STOCK OUT
+                </span>
+              ) : product.discount_price && (
                 <span className="absolute top-6 left-6 bg-primary-yellow text-charcoal font-bold text-xs tracking-wider uppercase px-3.5 py-1.5 rounded shadow-sm">
                   ৳{product.price - product.discount_price} OFF
                 </span>
@@ -254,9 +262,9 @@ export default function ProductPage({ params }) {
                 {isSoldOut ? (
                   <button
                     disabled
-                    className="w-full flex items-center justify-center gap-3 bg-soft-bg border border-soft-border text-secondary-text font-bold uppercase tracking-widest text-[13px] py-4 rounded-lg cursor-not-allowed min-h-[44px]"
+                    className="w-full flex items-center justify-center gap-3 bg-red-600/10 border border-red-200 text-red-600 font-extrabold uppercase tracking-widest text-[13px] py-4 rounded-lg cursor-not-allowed min-h-[44px]"
                   >
-                    Sold Out
+                    Stock Out
                   </button>
                 ) : (
                   <>
@@ -322,8 +330,8 @@ export default function ProductPage({ params }) {
                         className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                       />
                       {p.stock <= 0 ? (
-                        <span className="absolute top-3 left-3 bg-error text-white font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
-                          Sold Out
+                        <span className="absolute top-3 left-3 bg-red-600 text-white font-extrabold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded shadow-md z-10">
+                          Stock Out
                         </span>
                       ) : discount ? (
                         <span className="absolute top-3 left-3 bg-primary-yellow text-charcoal font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
@@ -348,11 +356,11 @@ export default function ProductPage({ params }) {
 
                       <div className="flex items-center justify-between pt-1">
                         <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
-                          <span className="text-[16px] sm:text-[18px] font-extrabold text-charcoal">
+                          <span className="text-[17px] sm:text-[19px] font-extrabold text-charcoal">
                             ৳{p.discount_price || p.price}
                           </span>
                           {discount && (
-                            <span className="text-[11px] text-secondary-text line-through font-normal">
+                            <span className="text-[12px] text-secondary-text line-through font-normal">
                               ৳{p.price}
                             </span>
                           )}
@@ -380,7 +388,98 @@ export default function ProductPage({ params }) {
         )}
       </div>
 
-      {/* Sticky Mobile Add to Cart Bar */}
+      {/* Out of Stock Overlay Modal & Recommendations */}
+      {isSoldOut && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white border border-soft-border shadow-2xl rounded-2xl p-6 sm:p-10 max-w-4xl w-full text-center space-y-6 my-auto">
+            
+            {/* Stock Out Header Badge */}
+            <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 font-extrabold text-[12px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+              Stock Out — Currently Unavailable
+            </div>
+
+            {/* Main Title */}
+            <div className="space-y-2">
+              <h2 className="font-luxury text-[26px] sm:text-[34px] text-charcoal tracking-wide leading-tight">
+                {product.name} is Currently Sold Out
+              </h2>
+              <p className="text-secondary-text text-[15px] sm:text-[16px] font-light max-w-md mx-auto">
+                This item is currently out of stock. Check out our most popular sunglasses below:
+              </p>
+            </div>
+
+            {/* People Are Also Buying Section */}
+            <div className="pt-2">
+              <span className="text-primary-yellow text-[12px] tracking-[0.2em] font-bold uppercase block mb-1">
+                Popular Selection
+              </span>
+              <h3 className="font-luxury text-[22px] sm:text-[28px] text-charcoal tracking-wider uppercase">
+                People Are Also Buying
+              </h3>
+              <div className="h-[2px] w-12 bg-primary-yellow mx-auto mt-2"></div>
+            </div>
+
+            {/* Grid of In-Stock Alternative Product Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 text-left pt-2">
+              {inStockProducts.map((p) => {
+                const discount = p.discount_price && p.price > p.discount_price
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/product/${p.id}`}
+                    className="group flex flex-col bg-white rounded-xl overflow-hidden border border-soft-border hover:border-charcoal/30 hover:shadow-lg transition-all duration-300 pointer-events-auto cursor-pointer"
+                  >
+                    <div className="relative aspect-square overflow-hidden bg-soft-bg">
+                      <img
+                        src={p.images?.[0]}
+                        alt={p.name}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {discount && (
+                        <span className="absolute top-2 left-2 bg-primary-yellow text-charcoal font-bold text-[9px] uppercase px-2 py-0.5 rounded shadow-sm">
+                          ৳{p.price - p.discount_price} OFF
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-3 flex-grow flex flex-col justify-between space-y-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-secondary-text uppercase tracking-wider block">
+                          {p.category || 'Sunglasses'}
+                        </span>
+                        <h4 className="text-[14px] font-bold text-charcoal group-hover:text-primary-yellow transition-colors line-clamp-1 mt-0.5">
+                          {p.name}
+                        </h4>
+                      </div>
+                      <div className="flex items-baseline justify-between pt-1">
+                        <span className="text-[15px] font-extrabold text-charcoal">
+                          ৳{p.discount_price || p.price}
+                        </span>
+                        {discount && (
+                          <span className="text-[11px] text-secondary-text line-through">
+                            ৳{p.price}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Explore Button */}
+            <div className="pt-4">
+              <Link
+                href="/shop"
+                className="inline-flex items-center justify-center gap-2 bg-charcoal text-white hover:bg-charcoal/90 font-bold uppercase tracking-widest text-[12px] px-8 py-3.5 rounded-full transition-all shadow-md pointer-events-auto"
+              >
+                Explore All Sunglasses
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      )}
       {!isSoldOut && (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-soft-border px-6 py-4 flex items-center justify-between gap-4 md:hidden shadow-lg">
           <div className="flex flex-col">

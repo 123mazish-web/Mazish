@@ -201,11 +201,15 @@ export default function HomePage() {
                         sizes="(max-width: 768px) 50vw, 25vw"
                         className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                       />
-                      {discount && (
+                      {product.stock <= 0 ? (
+                        <span className="absolute top-3 left-3 bg-red-600 text-white font-extrabold text-[10px] tracking-wider uppercase px-2.5 py-1 rounded shadow-md z-10">
+                          Stock Out
+                        </span>
+                      ) : discount ? (
                         <span className="absolute top-3 left-3 bg-primary-yellow text-charcoal font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded">
                           ৳{product.price - product.discount_price} OFF
                         </span>
-                      )}
+                      ) : null}
                     </Link>
 
                     {/* Details Box */}

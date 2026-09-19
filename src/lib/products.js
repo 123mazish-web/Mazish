@@ -34,7 +34,7 @@ export const DEFAULT_PRODUCTS = [
     ],
     category: "Sunglasses",
     gender: "Unisex",
-    stock: 25,
+    stock: 0,
     is_featured: true
   },
   {
