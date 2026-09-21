@@ -132,11 +132,13 @@ export const DEFAULT_PRODUCTS = [
     price: 2300,
     discount_price: 1799,
     images: [
-      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838425/mazish/MAZISH_Cheetah_Luxury_img1.jpg",
-      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838427/mazish/MAZISH_Cheetah_Luxury_img2.jpg",
-      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838429/mazish/MAZISH_Cheetah_Luxury_img3.jpg",
-      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838430/mazish/MAZISH_Cheetah_Luxury_img4.jpg",
-      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838431/mazish/MAZISH_Cheetah_Luxury_img5.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004112/mazish/MAZISH_Cheetah_v2_img1.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004113/mazish/MAZISH_Cheetah_v2_img2.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004115/mazish/MAZISH_Cheetah_v2_img3.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004116/mazish/MAZISH_Cheetah_v2_img4.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004117/mazish/MAZISH_Cheetah_v2_img5.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004118/mazish/MAZISH_Cheetah_v2_img6.jpg",
+      "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1790004120/mazish/MAZISH_Cheetah_v2_img7.jpg",
       "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1789838434/mazish/MAZISH_Cheetah_Luxury_img6.jpg"
     ],
     category: "Sunglasses",
