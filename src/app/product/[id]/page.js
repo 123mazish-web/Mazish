@@ -6,6 +6,7 @@ import { ArrowLeft, ShoppingBag, Truck, Shield, ChevronLeft, ChevronRight } from
 import { getProductById, getProducts } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
+import PujaCornerDecor from '@/components/PujaCornerDecor'
 
 export default function ProductPage({ params }) {
   const unwrappedParams = params && typeof params.then === 'function' ? use(params) : params
@@ -120,7 +121,9 @@ export default function ProductPage({ params }) {
 
   return (
     <div className="bg-warm-bg min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300 pb-28 md:pb-12 relative overflow-hidden">
-      
+      {/* Temporary Puja Festival Window Decoration */}
+      <PujaCornerDecor />
+
       {/* Blurred container when product is stock out */}
       <div className={`max-w-7xl mx-auto transition-all duration-500 ${isSoldOut ? 'blur-[4px] opacity-40 pointer-events-none select-none' : ''}`}>
         

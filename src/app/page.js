@@ -23,6 +23,8 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const bannerSlides = [
+    // TEMPORARY PUJA FESTIVAL BANNER (To remove after Puja: simply delete this line)
+    { desktop: '/puja-banner.jpg', mobile: '/puja-banner.jpg' },
     { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265520/banner1_ooav5q.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265520/banner1_ooav5q.png' },
     { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner2_ubqtfd.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner2_ubqtfd.png' },
     { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner3_cnesab.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner3_cnesab.png' }
@@ -161,7 +163,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
 
       {/* 4. Featured Products Section - White Background */}
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-warm-bg">

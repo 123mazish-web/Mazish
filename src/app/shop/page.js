@@ -6,6 +6,7 @@ import { ShoppingBag, Search, SlidersHorizontal } from 'lucide-react'
 import { getProducts, getCategories } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
+import PujaCornerDecor from '@/components/PujaCornerDecor'
 
 export default function ShopPage() {
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
@@ -60,7 +61,10 @@ export default function ShopPage() {
     })
 
   return (
-    <div className="bg-warm-bg min-h-screen py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+    <div className="bg-warm-bg min-h-screen py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300 relative">
+      {/* Temporary Puja Festival Window Decoration */}
+      <PujaCornerDecor />
+
       <div className="max-w-7xl mx-auto space-y-12">
         
         {/* Title */}

@@ -77,13 +77,14 @@ export default function CheckoutPage() {
     setPromoError('')
     setPromoLoading(true)
 
-    const localCodes = ['MAZISH10', 'LAUNCH950', 'SUMMER']
+    const localCodes = ['MAZISH10', 'LAUNCH950', 'SUMMER', 'PUJA123', 'PUJA10', 'PUJA', 'SHAROD10']
     if (localCodes.includes(code)) {
       const mockPromo = {
         code,
         discount_type: code === 'LAUNCH950' ? 'fixed' : 'percentage',
         discount_value: code === 'LAUNCH950' ? 150 : (code === 'SUMMER' ? 5 : 10)
       }
+      // Replaces any existing code, ensuring strictly only one promo code can be applied
       setAppliedPromo(mockPromo)
       setPromoCode('')
       setPromoLoading(false)
@@ -99,11 +100,11 @@ export default function CheckoutPage() {
         .single()
 
       if (error || !data) {
-        if (code === 'MAZISH10' || code === 'LAUNCH950') {
+        if (localCodes.includes(code)) {
           const mockPromo = {
             code,
             discount_type: code === 'LAUNCH950' ? 'fixed' : 'percentage',
-            discount_value: code === 'LAUNCH950' ? 150 : 10
+            discount_value: code === 'LAUNCH950' ? 150 : (code === 'SUMMER' ? 5 : 10)
           }
           setAppliedPromo(mockPromo)
           setPromoCode('')
@@ -111,6 +112,7 @@ export default function CheckoutPage() {
         }
         setPromoError('Invalid or expired promo code')
       } else {
+        // Enforce single active promo code
         setAppliedPromo(data)
         setPromoCode('')
       }
@@ -449,32 +451,38 @@ export default function CheckoutPage() {
               {/* Promo Code Form */}
               <div className="border-t border-soft-border pt-4 pb-2">
                 {appliedPromo ? (
-                  <div className="flex items-center justify-between bg-[#FFF9E8] border border-primary-yellow/20 text-charcoal rounded-lg px-4 py-2.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <Tag size={12} />
-                      <span>Applied: <strong>{appliedPromo.code}</strong> ({appliedPromo.discount_type === 'percentage' ? `${appliedPromo.discount_value}% Off` : `৳${appliedPromo.discount_value} Off`})</span>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between bg-[#FFF9E8] border border-primary-yellow/30 text-charcoal rounded-lg px-4 py-2.5 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Tag size={12} className="text-deep-yellow" />
+                        <span>Applied: <strong>{appliedPromo.code}</strong> ({appliedPromo.discount_type === 'percentage' ? `${appliedPromo.discount_value}% Off` : `৳${appliedPromo.discount_value} Off`})</span>
+                      </div>
+                      <button type="button" onClick={handleRemovePromo} className="text-secondary-text hover:text-charcoal p-1 cursor-pointer" title="Remove promo code">
+                        <X size={12} />
+                      </button>
                     </div>
-                    <button type="button" onClick={handleRemovePromo} className="text-secondary-text hover:text-charcoal p-1">
-                      <X size={12} />
-                    </button>
+                    <p className="text-[11px] text-secondary-text px-1">✓ Promo code active. (Limit: 1 promo code per order)</p>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyPromo} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="PROMO CODE"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      className="flex-1 bg-white border border-soft-border focus:border-charcoal focus:outline-none rounded-lg px-3 py-2 text-xs text-charcoal uppercase transition-colors"
-                    />
-                    <button
-                      type="submit"
-                      disabled={promoLoading}
-                      className="bg-charcoal text-warm-bg hover:bg-secondary-text font-bold uppercase tracking-widest text-[10px] px-4 rounded-lg transition-all cursor-pointer min-h-[36px]"
-                    >
-                      {promoLoading ? '...' : 'APPLY'}
-                    </button>
-                  </form>
+                  <>
+                    <form onSubmit={handleApplyPromo} className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="PROMO CODE"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        className="flex-1 bg-white border border-soft-border focus:border-charcoal focus:outline-none rounded-lg px-3 py-2 text-xs text-charcoal uppercase transition-colors"
+                      />
+                      <button
+                        type="submit"
+                        disabled={promoLoading}
+                        className="bg-charcoal text-warm-bg hover:bg-secondary-text font-bold uppercase tracking-widest text-[10px] px-4 rounded-lg transition-all cursor-pointer min-h-[36px]"
+                      >
+                        {promoLoading ? '...' : 'APPLY'}
+                      </button>
+                    </form>
+                    <p className="text-[11px] text-secondary-text mt-1.5 px-1">Note: Only 1 promo code can be applied per order. Codes cannot be combined.</p>
+                  </>
                 )}
                 {promoError && (
                   <p className="text-error text-[12px] mt-1.5 ml-1">{promoError}</p>
