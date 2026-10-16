@@ -188,9 +188,15 @@ export default function ProductPage({ params }) {
           {/* Right Column - Product Info */}
           <div className="flex flex-col justify-center space-y-5">
             <div className="space-y-2">
-              <span className="text-[12px] font-bold text-primary-yellow tracking-[0.2em] uppercase">
-                {product.category || 'Sunglasses'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-bold text-primary-yellow tracking-[0.2em] uppercase">
+                  {product.category || 'Sunglasses'}
+                </span>
+                <span className="text-[11px] font-semibold text-[#E8590C] flex items-center gap-1 uppercase tracking-wider">
+                  <span>•</span>
+                  <span>🌸 Puja Collection</span>
+                </span>
+              </div>
               <h1 className="font-luxury text-[30px] sm:text-[36px] text-charcoal tracking-wide leading-[1.15]">
                 {product.name}
               </h1>
