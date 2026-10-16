@@ -455,7 +455,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between bg-[#FFF9E8] border border-primary-yellow/30 text-charcoal rounded-lg px-4 py-2.5 text-xs">
                       <div className="flex items-center gap-2">
                         <Tag size={12} className="text-deep-yellow" />
-                        <span>Applied: <strong>{appliedPromo.code}</strong> ({appliedPromo.discount_type === 'percentage' ? `${appliedPromo.discount_value}% Off` : `৳${appliedPromo.discount_value} Off`})</span>
+                        <span>Applied: <strong>{appliedPromo.code}</strong> (Discount Applied)</span>
                       </div>
                       <button type="button" onClick={handleRemovePromo} className="text-secondary-text hover:text-charcoal p-1 cursor-pointer" title="Remove promo code">
                         <X size={12} />

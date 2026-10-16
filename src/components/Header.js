@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ShoppingBag, Menu, X, Trash2, Plus, Minus, ArrowRight } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
+import PujaCornerDecor from '@/components/PujaCornerDecor'
 
 export default function Header() {
   const { cart, removeFromCart, updateQuantity, cartCount, cartTotal } = useCart()
@@ -31,15 +32,15 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
+      <header className="sticky top-0 z-40 w-full relative border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
         {/* Puja Festive Announcement Bar */}
         {mounted && (
           <div className="w-full bg-charcoal text-[#F8F6F1] text-center py-2 px-4 text-[12px] sm:text-[13px] font-semibold tracking-wider border-b border-soft-border/30 flex items-center justify-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 text-primary-yellow">
               <span className="text-sm">🪔</span>
-              <span className="font-bold uppercase tracking-widest text-[11px] sm:text-[12px] bg-primary-yellow/15 text-primary-yellow border border-primary-yellow/30 px-2 py-0.5 rounded-full">Puja Special</span>
+              <span className="font-bold uppercase tracking-widest text-[11px] sm:text-[12px] bg-primary-yellow/15 text-primary-yellow border border-primary-yellow/30 px-2 py-0.5 rounded-full">Puja Collection</span>
             </span>
-            <span className="uppercase">Get 10% off with code:</span>
+            <span className="uppercase">Get discount with code:</span>
             <span className="text-primary-yellow font-extrabold px-1 tracking-wider">PUJA123</span>
             <span className="mx-1 opacity-70">•</span>
             <span className="uppercase text-[11px] sm:text-[12px]">Offer ends in:</span>
@@ -149,6 +150,9 @@ export default function Header() {
             </a>
           </div>
         )}
+
+        {/* Temporary Puja Festival Hanging Corner Lanterns & Marigold Garlands */}
+        <PujaCornerDecor />
       </header>
 
       {/* Cart Sliding Drawer Overlay */}

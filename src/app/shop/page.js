@@ -6,7 +6,6 @@ import { ShoppingBag, Search, SlidersHorizontal } from 'lucide-react'
 import { getProducts, getCategories } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
-import PujaCornerDecor from '@/components/PujaCornerDecor'
 
 export default function ShopPage() {
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
@@ -62,16 +61,21 @@ export default function ShopPage() {
 
   return (
     <div className="bg-warm-bg min-h-screen py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300 relative">
-      {/* Temporary Puja Festival Window Decoration */}
-      <PujaCornerDecor />
-
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* Title */}
+        {/* Title with Subtle Festive Floral Touch */}
         <div className="text-center space-y-3">
-          <span className="text-primary-yellow text-[12px] sm:text-[13px] tracking-widest font-bold uppercase">Browse Collection</span>
+          <div className="inline-flex items-center gap-2 text-primary-yellow text-[11px] sm:text-[12px] tracking-widest font-bold uppercase">
+            <span>🌸</span>
+            <span>Puja Collection</span>
+            <span>🌸</span>
+          </div>
           <h1 className="font-luxury text-[34px] sm:text-[42px] text-charcoal tracking-wider uppercase">THE MAZISH SHOP</h1>
-          <div className="h-[1px] w-12 bg-soft-border mx-auto"></div>
+          <div className="flex items-center justify-center gap-3 max-w-[200px] mx-auto">
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#D9A91F]/60"></div>
+            <span className="text-xs text-[#E8590C]">🪔</span>
+            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[#D9A91F]/60"></div>
+          </div>
         </div>
 
         {/* Toolbar (Search & Sort) */}
