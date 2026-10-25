@@ -77,7 +77,7 @@ export default function CheckoutPage() {
     setPromoError('')
     setPromoLoading(true)
 
-    const localCodes = ['MAZISH10', 'LAUNCH950', 'SUMMER', 'PUJA123', 'PUJA10', 'PUJA', 'SHAROD10']
+    const localCodes = ['MAZISH10', 'LAUNCH950', 'SUMMER']
     if (localCodes.includes(code)) {
       const mockPromo = {
         code,

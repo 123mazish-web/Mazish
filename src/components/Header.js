@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ShoppingBag, Menu, X, Trash2, Plus, Minus, ArrowRight } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
-import PujaCornerDecor from '@/components/PujaCornerDecor'
 
 export default function Header() {
   const { cart, removeFromCart, updateQuantity, cartCount, cartTotal } = useCart()
@@ -32,19 +30,15 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full relative border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
-        {/* Puja Festive Announcement Bar */}
+      <header className="sticky top-0 z-40 w-full border-b border-soft-border bg-warm-bg/95 backdrop-blur-md transition-all duration-300">
+        {/* Promo Bar */}
         {mounted && (
-          <div className="w-full bg-charcoal text-[#F8F6F1] text-center py-2 px-4 text-[12px] sm:text-[13px] font-semibold tracking-wider border-b border-soft-border/30 flex items-center justify-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-primary-yellow">
-              <span className="text-sm">🪔</span>
-              <span className="font-bold uppercase tracking-widest text-[11px] sm:text-[12px] bg-primary-yellow/15 text-primary-yellow border border-primary-yellow/30 px-2 py-0.5 rounded-full">Puja Collection</span>
-            </span>
-            <span className="uppercase">Get discount with code:</span>
-            <span className="text-primary-yellow font-extrabold px-1 tracking-wider">PUJA123</span>
+          <div className="w-full bg-charcoal text-[#F8F6F1] text-center py-2 px-4 text-[13px] sm:text-[14px] font-bold uppercase tracking-wider border-b border-soft-border/30 flex items-center justify-center gap-1.5 flex-wrap">
+            <span>Get 5% off with code:</span>
+            <span className="text-primary-yellow font-extrabold px-1">SUMMER</span>
             <span className="mx-1 opacity-70">•</span>
-            <span className="uppercase text-[11px] sm:text-[12px]">Offer ends in:</span>
-            <span className="text-primary-yellow font-mono text-[14px] sm:text-[16px] font-extrabold tracking-widest px-2 bg-white/10 rounded inline-block min-w-[65px] text-center">{formatTime(timeLeft)}</span>
+            <span>Offer ends in:</span>
+            <span className="text-primary-yellow font-mono text-[16px] sm:text-[18px] font-extrabold tracking-widest px-2 bg-charcoal-light/20 rounded inline-block min-w-[70px] text-center">{formatTime(timeLeft)}</span>
           </div>
         )}
         <div className="mx-auto relative flex max-w-7xl h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -150,9 +144,6 @@ export default function Header() {
             </a>
           </div>
         )}
-
-        {/* Temporary Puja Festival Hanging Corner Lanterns & Marigold Garlands */}
-        <PujaCornerDecor />
       </header>
 
       {/* Cart Sliding Drawer Overlay */}

@@ -25,13 +25,11 @@ export default function ForHerPage() {
     loadData()
   }, [])
 
-  // Explicit Her Selection by Name (Robust against DB vs Fallback IDs)
-  const herNames = [
-    "MAZISH Stealth Sport",
-    "MAZISH Retro Browline",
-    "MAZISH Cyber Edge"
-  ]
-  const womenProducts = products.filter(p => herNames.includes(p.name))
+  // Dynamic filtering by gender (Women or Unisex)
+  const womenProducts = products.filter(p => {
+    const gender = (p.gender || '').toLowerCase()
+    return gender === 'women' || gender === 'unisex'
+  })
 
   return (
     <div className="bg-warm-bg min-h-screen py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300">

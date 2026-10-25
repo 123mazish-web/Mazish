@@ -10,12 +10,8 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1)
 }
 
-const ws = require('ws')
 const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: { persistSession: false },
-  realtime: {
-    transport: ws
-  }
+  auth: { persistSession: false }
 })
 
 const DEFAULT_CATEGORIES = [

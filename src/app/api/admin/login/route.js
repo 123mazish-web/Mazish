@@ -5,11 +5,13 @@ export async function POST(request) {
     const { username, password } = await request.json()
 
     const expectedUser = process.env.ADMIN_USER || 'admin'
-    const expectedPass = process.env.ADMIN_PASS || 'mazish2026'
+    const expectedPass = process.env.ADMIN_PASS
+
+    if (!expectedPass) {
+      return NextResponse.json({ success: false, error: 'Server authentication configuration missing' }, { status: 500 })
+    }
 
     if (username === expectedUser && password === expectedPass) {
-      // In a real application, you might set a secure HTTP-only cookie here.
-      // For our fast launch, we will return a success state and token.
       return NextResponse.json({ success: true, token: 'mazish-secure-admin-token' })
     }
 

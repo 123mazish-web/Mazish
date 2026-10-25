@@ -12,8 +12,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false)
   const { addToCart } = useCart()
 
-  // Category Filter State
-  const [activeFilter, setActiveFilter] = useState('All')
 
   // Newsletter Form State
   const [emailOrPhone, setEmailOrPhone] = useState('')
@@ -23,8 +21,6 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const bannerSlides = [
-    // TEMPORARY PUJA FESTIVAL BANNER (To remove after Puja: simply delete this line)
-    { desktop: '/puja-banner.jpg', mobile: '/puja-banner.jpg' },
     { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265520/banner1_ooav5q.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265520/banner1_ooav5q.png' },
     { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner2_ubqtfd.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner2_ubqtfd.png' },
     { desktop: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner3_cnesab.png', mobile: 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265521/banner3_cnesab.png' }

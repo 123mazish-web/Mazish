@@ -25,7 +25,14 @@ export const metadata = {
   openGraph: {
     title: "MAZISH | Curated Premium Fashion & Eyewear",
     description: "Discover premium sunglasses and luxury statements in Bangladesh.",
-    images: [{ url: "/api/og" }],
+    images: [
+      {
+        url: "https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265520/banner1_ooav5q.png",
+        width: 1200,
+        height: 630,
+        alt: "MAZISH Luxury Eyewear"
+      }
+    ],
   }
 };
 

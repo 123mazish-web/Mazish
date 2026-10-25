@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sensitive data & exports
+*.xlsx
+*.csv
+*.sql
+*.sqlite
+*.db
+*customer*.xlsx
+*customer*.csv
+*backup*
+scripts/
+
+
+

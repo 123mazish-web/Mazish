@@ -30,27 +30,6 @@ export async function getProducts() {
     products = [...DEFAULT_PRODUCTS]
   }
 
-  // Merge client-side localStorage custom products / edits
-  if (typeof window !== 'undefined') {
-    try {
-      const localProducts = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
-      if (localProducts.length > 0) {
-        const merged = [...products]
-        localProducts.forEach(lp => {
-          const idx = merged.findIndex(p => p.id === lp.id)
-          if (idx !== -1) {
-            merged[idx] = { ...merged[idx], ...lp }
-          } else {
-            merged.unshift(lp)
-          }
-        })
-        return merged
-      }
-    } catch (err) {
-      console.error("Error loading local products:", err)
-    }
-  }
-
   return products
 }
 
@@ -78,39 +57,25 @@ export async function getProductById(id) {
     product = DEFAULT_PRODUCTS.find(p => p.id === id || p.legacy_id === id) || null
   }
 
-  // Merge client-side localStorage edits
-  if (typeof window !== 'undefined' && product) {
-    try {
-      const localProducts = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
-      const localEdit = localProducts.find(p => p.id === id)
-      if (localEdit) {
-        product = { ...product, ...localEdit }
-      }
-    } catch (err) {
-      console.error("Error loading local product edits:", err)
-    }
-  }
-
   return product
 }
 
 export async function createOrder(orderData) {
   let attempt = 0
-  const maxAttempts = 5
+  const maxAttempts = 2
   let lastError = null
 
   while (attempt < maxAttempts) {
     attempt++
     try {
       console.log(`Order creation attempt ${attempt}...`)
-      // Increase timeout to 12 seconds per attempt to handle database wake-up / cold starts
       const { data, error } = await withTimeout(
         supabase
           .from('orders')
           .insert([orderData])
           .select()
           .single(),
-        12000
+        6000
       )
 
       if (!error && data) {
@@ -126,15 +91,14 @@ export async function createOrder(orderData) {
     }
 
     if (attempt < maxAttempts) {
-      // Wait 3 seconds before retrying to give database time to spin up
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      await new Promise(resolve => setTimeout(resolve, 1000))
     }
   }
 
-  console.error("All order creation attempts failed. Fallback to mock order.", lastError)
+  console.error("Order creation failed in Supabase:", lastError)
   return {
     success: false,
-    error: lastError ? lastError.message : 'Unknown connection error',
+    error: lastError ? lastError.message : 'Connection error',
     mockOrder: { id: crypto.randomUUID(), ...orderData, created_at: new Date().toISOString() }
   }
 }

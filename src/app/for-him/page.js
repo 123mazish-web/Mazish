@@ -25,15 +25,11 @@ export default function ForHimPage() {
     loadData()
   }, [])
 
-  // Explicit Him Selection by Name (Robust against DB vs Fallback IDs)
-  const himNames = [
-    "MAZISH Classic Aviator",
-    "MAZISH Onyx Shadow",
-    "MAZISH Lumina Rose",
-    "MAZISH Mirage Silver",
-    "MAZISH Elysian Amber"
-  ]
-  const menProducts = products.filter(p => himNames.includes(p.name))
+  // Dynamic filtering by gender (Men or Unisex)
+  const menProducts = products.filter(p => {
+    const gender = (p.gender || '').toLowerCase()
+    return gender === 'men' || gender === 'unisex'
+  })
 
   return (
     <div className="bg-warm-bg min-h-screen py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
