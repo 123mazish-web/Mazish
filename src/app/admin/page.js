@@ -35,40 +35,12 @@ export default function AdminPage() {
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage] = useState('')
 
-  // Expenses State (Persisted in localStorage)
-  const [expenses, setExpenses] = useState(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const saved = localStorage.getItem('mazish_expenses')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {}
-    return [
-      {
-        id: 'exp-1',
-        title: 'Steadfast Courier Delivery & Return Fees',
-        amount: 3500,
-        category: 'Courier & Shipping',
-        date: new Date().toISOString().substring(0, 10),
-        notes: 'Domestic COD delivery settlement',
-      },
-      {
-        id: 'exp-2',
-        title: 'Premium Hard Shell Sunglasses Boxes (200 pcs)',
-        amount: 6400,
-        category: 'Packaging',
-        date: new Date().toISOString().substring(0, 10),
-        notes: 'Embossed luxury cases & microfiber pouches',
-      },
-      {
-        id: 'exp-3',
-        title: 'Meta Ads Campaign (Instagram & Facebook Reach)',
-        amount: 4800,
-        category: 'Marketing & Ads',
-        date: new Date().toISOString().substring(0, 10),
-        notes: 'Targeted eyewear video campaign',
-      },
-    ]
-  })
+  // Expenses State (Cleared to empty for clean slate)
+  const [expenses, setExpenses] = useState([])
+
+  // Steadfast Live Courier Balance
+  const [steadfastBalance, setSteadfastBalance] = useState(null)
+  const [balanceLoading, setBalanceLoading] = useState(false)
 
   // Security Blacklists State (Persisted in localStorage)
   const [blockedPhones, setBlockedPhones] = useState(() => {
@@ -127,8 +99,6 @@ export default function AdminPage() {
       sessionStorage.getItem('mazish_admin_token')
     if (token === 'mazish-secure-admin-token') {
       setIsAuthenticated(true)
-      const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
-      setOrders(localOrders)
       loadData(true)
     } else {
       setLoading(false)
@@ -180,19 +150,15 @@ export default function AdminPage() {
         ])
 
       // 1. Process Orders
-      const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
       if (
         ordersRes.status === 'fulfilled' &&
         ordersRes.value &&
         ordersRes.value.data &&
         !ordersRes.value.error
       ) {
-        const dbOrders = ordersRes.value.data
-        setOrders([
-          ...dbOrders,
-          ...localOrders.filter((lo) => !dbOrders.find((doObj) => doObj.id === lo.id)),
-        ])
+        setOrders(ordersRes.value.data || [])
       } else {
+        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
         setOrders(localOrders)
       }
 
@@ -238,10 +204,34 @@ export default function AdminPage() {
               ]
         )
       }
+
+      // 5. Fetch Live Steadfast Balance
+      fetchSteadfastBalance()
     } catch (e) {
       console.warn('Network timeout, using cached state:', e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Fetch Live Steadfast Courier Balance
+  async function fetchSteadfastBalance() {
+    setBalanceLoading(true)
+    try {
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      const res = await fetch('/api/steadfast/balance', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success && typeof data.balance === 'number') {
+        setSteadfastBalance(data.balance)
+      }
+    } catch (e) {
+      console.warn('Could not fetch Steadfast balance:', e)
+    } finally {
+      setBalanceLoading(false)
     }
   }
 
@@ -266,8 +256,6 @@ export default function AdminPage() {
           sessionStorage.setItem('mazish_admin_token', result.token)
         }
         setIsAuthenticated(true)
-        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
-        setOrders(localOrders)
         loadData(true)
       } else {
         setLoginError(result.error || 'Authentication failed')
@@ -344,9 +332,16 @@ export default function AdminPage() {
         orderId.startsWith('pos-') ||
         orderId.startsWith('manual-')
 
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+
       const dispatchResponse = await fetch('/api/steadfast', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ orderId, isDemo }),
       })
 
@@ -444,11 +439,30 @@ export default function AdminPage() {
     setActionLoading(product.id + '-stock')
     const newStock = product.stock === 0 ? 15 : 0
     try {
-      await supabase.from('products').update({ stock: newStock }).eq('id', product.id)
-      setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p)))
-      setMessage(`${product.name} stock set to ${newStock}`)
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      const res = await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'UPDATE_STOCK',
+          id: product.id,
+          stock: newStock,
+        }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p)))
+        setMessage(`${product.name} stock set to ${newStock}`)
+      } else {
+        setMessage(`Stock update error: ${result.error}`)
+      }
     } catch (err) {
-      setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p)))
+      setMessage(`Stock update error: ${err.message}`)
     }
     setActionLoading(null)
   }
@@ -456,20 +470,39 @@ export default function AdminPage() {
   // Product Edit Save Handler
   const handleSaveProduct = async (product) => {
     try {
-      await supabase
-        .from('products')
-        .update({
-          name: product.name,
-          price: product.price,
-          discount_price: product.discount_price,
-          stock: product.stock,
-          gender: product.gender,
-        })
-        .eq('id', product.id)
-      setProducts((prev) => prev.map((p) => (p.id === product.id ? product : p)))
-      setMessage('Product updated successfully!')
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      const res = await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'UPDATE_PRODUCT',
+          id: product.id,
+          payload: {
+            name: product.name,
+            price: product.price,
+            discount_price: product.discount_price,
+            stock: product.stock,
+            gender: product.gender,
+            category: product.category,
+            description: product.description,
+            is_featured: product.is_featured,
+          },
+        }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, ...result.data } : p)))
+        setMessage(`Product "${product.name}" updated successfully!`)
+      } else {
+        setMessage(`Failed to update product: ${result.error}`)
+      }
     } catch (e) {
-      setProducts((prev) => prev.map((p) => (p.id === product.id ? product : p)))
+      setMessage(`Update error: ${e.message}`)
     }
   }
 
@@ -488,17 +521,60 @@ export default function AdminPage() {
     }
 
     try {
-      const { data, error } = await supabase.from('products').insert([payload]).select().single()
-      if (!error && data) {
-        setProducts((prev) => [data, ...prev])
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      const res = await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'CREATE_PRODUCT',
+          payload,
+        }),
+      })
+      const result = await res.json()
+      if (result.success && result.data) {
+        setProducts((prev) => [result.data, ...prev])
+        setMessage('New product published successfully!')
+        setActiveTab('products')
       } else {
-        setProducts((prev) => [{ id: `prod-${Date.now()}`, ...payload }, ...prev])
+        setMessage(`Failed to create product: ${result.error}`)
       }
-      setMessage('New product published!')
-      setActiveTab('products')
     } catch (e) {
-      setProducts((prev) => [{ id: `prod-${Date.now()}`, ...payload }, ...prev])
-      setActiveTab('products')
+      setMessage(`Create error: ${e.message}`)
+    }
+  }
+
+  // Product Delete Handler
+  const handleDeleteProduct = async (productId) => {
+    if (!confirm('Are you sure you want to delete this product?')) return
+    try {
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      const res = await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'DELETE_PRODUCT',
+          id: productId,
+        }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setProducts((prev) => prev.filter((p) => p.id !== productId))
+        setMessage('Product deleted successfully!')
+      } else {
+        setMessage(`Delete error: ${result.error}`)
+      }
+    } catch (e) {
+      setMessage(`Delete error: ${e.message}`)
     }
   }
 
@@ -539,6 +615,22 @@ export default function AdminPage() {
       setPromoCodes((prev) => prev.map((p) => (p.code === code ? { ...p, is_active: isActive } : p)))
     } catch (e) {
       setPromoCodes((prev) => prev.map((p) => (p.code === code ? { ...p, is_active: isActive } : p)))
+    }
+  }
+
+  // Promo Delete Handler
+  const handleDeletePromo = async (code) => {
+    try {
+      await fetch('/api/admin/promos/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'DELETE', code }),
+      })
+      setPromoCodes((prev) => prev.filter((p) => p.code !== code))
+      setMessage(`Coupon "${code}" deleted successfully!`)
+      setTimeout(() => setMessage(''), 3000)
+    } catch (e) {
+      setPromoCodes((prev) => prev.filter((p) => p.code !== code))
     }
   }
 
@@ -734,8 +826,10 @@ export default function AdminPage() {
             orders={orders}
             products={products}
             expenses={expenses}
+            steadfastBalance={steadfastBalance}
+            balanceLoading={balanceLoading}
+            onRefreshBalance={fetchSteadfastBalance}
             onReload={loadData}
-            steadfastBalance={13185}
           />
         )}
 
@@ -786,10 +880,11 @@ export default function AdminPage() {
                 onToggleStock={handleToggleStock}
                 onSaveProduct={handleSaveProduct}
                 onSaveNewProduct={handleSaveNewProduct}
-                onDeleteProduct={() => {}}
+                onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
+                onDeletePromo={handleDeletePromo}
               />
             )}
 
@@ -804,10 +899,11 @@ export default function AdminPage() {
                 onToggleStock={handleToggleStock}
                 onSaveProduct={handleSaveProduct}
                 onSaveNewProduct={handleSaveNewProduct}
-                onDeleteProduct={() => {}}
+                onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
+                onDeletePromo={handleDeletePromo}
               />
             )}
 
@@ -822,10 +918,11 @@ export default function AdminPage() {
                 onToggleStock={handleToggleStock}
                 onSaveProduct={handleSaveProduct}
                 onSaveNewProduct={handleSaveNewProduct}
-                onDeleteProduct={() => {}}
+                onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
+                onDeletePromo={handleDeletePromo}
               />
             )}
 
@@ -840,10 +937,11 @@ export default function AdminPage() {
                 onToggleStock={handleToggleStock}
                 onSaveProduct={handleSaveProduct}
                 onSaveNewProduct={handleSaveNewProduct}
-                onDeleteProduct={() => {}}
+                onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
+                onDeletePromo={handleDeletePromo}
               />
             )}
 

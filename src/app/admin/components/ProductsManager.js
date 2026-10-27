@@ -12,7 +12,8 @@ import {
   ListFilter,
   Eye,
   X,
-  Plus
+  Plus,
+  ChevronDown
 } from 'lucide-react'
 
 export default function ProductsManager({
@@ -28,6 +29,7 @@ export default function ProductsManager({
   onAddCategory,
   onAddPromo,
   onTogglePromo,
+  onDeletePromo,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [editingProduct, setEditingProduct] = useState(null)
@@ -417,12 +419,15 @@ export default function ProductsManager({
 
       {/* 4. PROMO CODES VIEW */}
       {activeSubView === 'promo-codes' && (
-        <div className="bg-white border border-soft-border/90 p-8 sm:p-10 rounded-2xl shadow-xs space-y-7">
+        <div className="bg-white border border-soft-border/90 p-6 sm:p-10 rounded-2xl shadow-xs space-y-7">
           <div className="pb-4 border-b border-soft-border/70">
             <h2 className="font-luxury text-3xl sm:text-4xl font-normal text-charcoal flex items-center gap-3">
               <Tag size={28} className="text-[#F5C443]" />
               PROMOTIONAL DISCOUNT COUPONS
             </h2>
+            <p className="text-xs sm:text-sm text-secondary-text mt-1">
+              Create discount codes, configure percentage or flat discounts, and manage coupon availability
+            </p>
           </div>
 
           {/* Add Promo Form */}
@@ -433,62 +438,138 @@ export default function ProductsManager({
               onAddPromo(promoForm)
               setPromoForm({ code: '', discount_type: 'percentage', discount_value: '', is_active: true })
             }}
-            className="grid grid-cols-4 gap-4 max-w-2xl text-sm"
+            className="bg-soft-bg/60 border border-soft-border/80 p-5 rounded-2xl max-w-3xl space-y-3"
           >
-            <input
-              type="text"
-              required
-              placeholder="CODE (e.g. VIP10)"
-              value={promoForm.code}
-              onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
-              className="bg-soft-bg border border-soft-border rounded-xl px-4 py-3 uppercase font-bold text-base"
-            />
-            <select
-              value={promoForm.discount_type}
-              onChange={(e) => setPromoForm({ ...promoForm, discount_type: e.target.value })}
-              className="bg-soft-bg border border-soft-border rounded-xl px-4 py-3 font-semibold"
-            >
-              <option value="percentage">% Percentage</option>
-              <option value="fixed">৳ Fixed Amount</option>
-            </select>
-            <input
-              type="number"
-              required
-              placeholder="Value"
-              value={promoForm.discount_value}
-              onChange={(e) => setPromoForm({ ...promoForm, discount_value: e.target.value })}
-              className="bg-soft-bg border border-soft-border rounded-xl px-4 py-3 font-bold text-base"
-            />
-            <button
-              type="submit"
-              className="bg-[#F5C443] hover:bg-[#E5B537] text-charcoal font-bold rounded-xl text-sm uppercase tracking-wider"
-            >
-              + Create
-            </button>
-          </form>
+            <span className="text-xs font-bold text-charcoal uppercase tracking-wider block">
+              Create New Promo Coupon
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+              <div>
+                <label className="text-[11px] font-bold text-secondary-text uppercase block mb-1">
+                  Coupon Code *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="E.G. VIP10"
+                  value={promoForm.code}
+                  onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase().trim() })}
+                  className="w-full bg-white border border-soft-border rounded-xl px-3.5 py-2.5 uppercase font-mono font-bold text-sm text-charcoal focus:outline-none focus:border-amber-400 shadow-2xs"
+                />
+              </div>
 
-          {/* Promos Table */}
-          <div className="divide-y divide-soft-border/70 max-w-2xl text-sm pt-4">
-            {promoCodes.map((p) => (
-              <div key={p.code} className="py-4 flex justify-between items-center">
-                <div>
-                  <span className="font-mono font-bold text-base block">{p.code}</span>
-                  <span className="text-xs sm:text-sm text-secondary-text">
-                    {p.discount_type === 'percentage' ? `${p.discount_value}% Percentage Discount` : `৳${p.discount_value} Flat Off`}
-                  </span>
+              <div>
+                <label className="text-[11px] font-bold text-secondary-text uppercase block mb-1">
+                  Discount Type
+                </label>
+                <div className="relative">
+                  <select
+                    value={promoForm.discount_type}
+                    onChange={(e) => setPromoForm({ ...promoForm, discount_type: e.target.value })}
+                    className="w-full appearance-none bg-white border border-soft-border rounded-xl px-3.5 py-2.5 pr-8 font-semibold text-charcoal text-xs sm:text-sm focus:outline-none focus:border-amber-400 cursor-pointer shadow-2xs"
+                  >
+                    <option value="percentage">% Percentage</option>
+                    <option value="fixed">৳ Flat Off</option>
+                  </select>
+                  <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none" />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-secondary-text uppercase block mb-1">
+                  Discount Value *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="e.g. 10 or 150"
+                  value={promoForm.discount_value}
+                  onChange={(e) => setPromoForm({ ...promoForm, discount_value: e.target.value })}
+                  className="w-full bg-white border border-soft-border rounded-xl px-3.5 py-2.5 font-bold text-sm text-charcoal focus:outline-none focus:border-amber-400 shadow-2xs"
+                />
+              </div>
+
+              <div className="flex items-end">
                 <button
-                  onClick={() => onTogglePromo(p.code, !p.is_active)}
-                  className={`px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider ${
-                    p.is_active
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-red-50 text-red-600 border border-red-200'
-                  }`}
+                  type="submit"
+                  className="w-full bg-[#F5C443] hover:bg-[#E5B537] text-charcoal font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5 h-[42px]"
                 >
-                  {p.is_active ? 'Active' : 'Disabled'}
+                  <Plus size={16} />
+                  <span>Create</span>
                 </button>
               </div>
-            ))}
+            </div>
+          </form>
+
+          {/* Promos List */}
+          <div className="max-w-3xl space-y-3 pt-2">
+            <span className="text-xs font-bold text-secondary-text uppercase tracking-wider block">
+              Active Coupons ({promoCodes.length})
+            </span>
+
+            {promoCodes.length === 0 ? (
+              <div className="p-8 text-center bg-soft-bg/50 rounded-2xl border border-dashed border-soft-border text-secondary-text text-sm">
+                No coupons created yet. Use the form above to add one.
+              </div>
+            ) : (
+              <div className="divide-y divide-soft-border/70 border border-soft-border/80 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                {promoCodes.map((p) => (
+                  <div
+                    key={p.code}
+                    className="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-soft-bg/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="h-10 w-10 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-[#B18512] shrink-0">
+                        <Tag size={18} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-extrabold text-base text-charcoal tracking-wide">
+                            {p.code}
+                          </span>
+                        </div>
+                        <span className="text-xs sm:text-sm text-secondary-text font-medium block">
+                          {p.discount_type === 'percentage'
+                            ? `${p.discount_value}% Percentage Discount`
+                            : `৳${p.discount_value} Flat Off`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {/* Active/Disabled Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={() => onTogglePromo && onTogglePromo(p.code, !p.is_active)}
+                        className={`px-3.5 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-2xs ${
+                          p.is_active
+                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                            : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-300'
+                        }`}
+                        title="Click to toggle status"
+                      >
+                        {p.is_active ? 'Active' : 'Disabled'}
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete coupon "${p.code}"?`)) {
+                            onDeletePromo && onDeletePromo(p.code)
+                          }
+                        }}
+                        className="h-9 w-9 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200/80 inline-flex items-center justify-center text-red-600 hover:text-red-800 transition-colors cursor-pointer shadow-2xs shrink-0"
+                        title={`Delete coupon "${p.code}"`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -17,7 +17,10 @@ import {
   ShoppingBag,
   ExternalLink,
   Download,
-  X
+  X,
+  ShieldAlert,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react'
 
 export default function OrdersManager({
@@ -35,6 +38,49 @@ export default function OrdersManager({
   const [selectedOrderModal, setSelectedOrderModal] = useState(null)
   const [showManualModal, setShowManualModal] = useState(false)
   const [editingManualOrder, setEditingManualOrder] = useState(null)
+
+  // Delivery Risk & Fraud Reputation State
+  const [riskScores, setRiskScores] = useState({})
+  const [selectedRiskModal, setSelectedRiskModal] = useState(null)
+
+  // Fetch Steadfast Customer Delivery Reputation Score
+  const fetchRiskScore = async (rawPhone) => {
+    if (!rawPhone) return
+    const cleanPhone = rawPhone.replace(/\D/g, '')
+    if (riskScores[cleanPhone]?.loading) return
+
+    setRiskScores((prev) => ({
+      ...prev,
+      [cleanPhone]: { loading: true },
+    }))
+
+    try {
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+
+      const res = await fetch(`/api/steadfast/risk-check?phone=${encodeURIComponent(cleanPhone)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setRiskScores((prev) => ({
+          ...prev,
+          [cleanPhone]: { loading: false, data },
+        }))
+      } else {
+        setRiskScores((prev) => ({
+          ...prev,
+          [cleanPhone]: { loading: false, error: data.error },
+        }))
+      }
+    } catch (e) {
+      setRiskScores((prev) => ({
+        ...prev,
+        [cleanPhone]: { loading: false, error: e.message },
+      }))
+    }
+  }
 
   // Manual Order Form State
   const [manualForm, setManualForm] = useState({
@@ -259,14 +305,94 @@ export default function OrdersManager({
                       </td>
 
                       {/* Customer */}
-                      <td className="py-5 px-6 space-y-1">
+                      <td className="py-5 px-6 space-y-1.5">
                         <span className="font-bold text-base sm:text-lg text-charcoal block">
                           {order.customer_name}
                         </span>
-                        <span className="font-mono text-sm text-secondary-text font-bold block">
-                          {order.phone}
-                        </span>
-                        <span className="text-xs sm:text-sm text-secondary-text line-clamp-1 max-w-[200px]" title={order.delivery_address}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm text-secondary-text font-bold">
+                            {order.phone}
+                          </span>
+                          {/* Live Delivery Risk Check Badge */}
+                          {(() => {
+                            const cleanPhone = (order.phone || '').replace(/\D/g, '')
+                            const risk = riskScores[cleanPhone]
+
+                            if (!risk) {
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => fetchRiskScore(order.phone)}
+                                  className="text-[10.5px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                                  title="Check customer delivery reputation in Steadfast network"
+                                >
+                                  <ShieldAlert size={11} className="text-amber-600" />
+                                  <span>Check Risk</span>
+                                </button>
+                              )
+                            }
+
+                            if (risk.loading) {
+                              return (
+                                <span className="text-[10px] font-bold text-secondary-text animate-pulse bg-zinc-100 px-2 py-0.5 rounded-md border border-zinc-200">
+                                  Checking...
+                                </span>
+                              )
+                            }
+
+                            if (risk.data) {
+                              const { riskLevel, deliveryRatio, cancellationRatio, totalReports } = risk.data
+                              if (riskLevel === 'HIGH') {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedRiskModal(risk.data)}
+                                    className="text-[10.5px] font-extrabold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                                    title="Click for full fraud breakdown"
+                                  >
+                                    <AlertTriangle size={11} className="text-red-600" />
+                                    <span>High Risk ({cancellationRatio}% Return{totalReports > 0 ? `, ${totalReports} Rep` : ''})</span>
+                                  </button>
+                                )
+                              }
+                              if (riskLevel === 'MEDIUM') {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedRiskModal(risk.data)}
+                                    className="text-[10.5px] font-extrabold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                                    title="Click for full fraud breakdown"
+                                  >
+                                    <AlertTriangle size={11} className="text-amber-600" />
+                                    <span>Medium Risk ({cancellationRatio}% Return)</span>
+                                  </button>
+                                )
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRiskModal(risk.data)}
+                                  className="text-[10.5px] font-extrabold text-[#0F766E] bg-[#EAF7EE] hover:bg-emerald-100 border border-[#A6E6BD] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                                  title="Click for full breakdown"
+                                >
+                                  <ShieldCheck size={11} className="text-emerald-600" />
+                                  <span>Trusted ({deliveryRatio > 0 ? `${deliveryRatio}% Delivered` : 'Clean'})</span>
+                                </button>
+                              )
+                            }
+
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => fetchRiskScore(order.phone)}
+                                className="text-[10px] text-red-600 underline"
+                              >
+                                Retry
+                              </button>
+                            )
+                          })()}
+                        </div>
+                        <span className="text-xs sm:text-sm text-secondary-text line-clamp-1 max-w-[200px] block" title={order.delivery_address}>
                           {order.delivery_address}
                         </span>
                       </td>
@@ -321,24 +447,45 @@ export default function OrdersManager({
                               {order.steadfast_consignment_id}
                             </span>
                             {order.steadfast_tracking_code && (
-                              <span className="text-xs text-secondary-text block font-mono font-medium mt-1">
-                                Track: {order.steadfast_tracking_code}
-                              </span>
+                              <a
+                                href={`https://steadfast.com.bd/tracking?tracking_code=${encodeURIComponent(order.steadfast_tracking_code)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-mono font-bold mt-1 underline"
+                                title="Open Steadfast live tracking"
+                              >
+                                <span>Track: {order.steadfast_tracking_code}</span>
+                                <ExternalLink size={11} />
+                              </a>
                             )}
                           </div>
                         ) : (
-                          <button
-                            onClick={() => onDispatchSteadfast(order.id)}
-                            disabled={actionLoading === order.id + '-steadfast'}
-                            className="flex items-center gap-2 bg-[#FFF9E8] hover:bg-[#FFF3CE] text-[#B18512] border border-[#F4C542]/50 text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition-all shadow-2xs cursor-pointer"
-                          >
-                            <Truck size={15} />
-                            <span>
-                              {actionLoading === order.id + '-steadfast'
-                                ? 'Booking...'
-                                : 'Send to Steadfast'}
-                            </span>
-                          </button>
+                          <div className="space-y-1">
+                            {(() => {
+                              const cleanPhone = (order.phone || '').replace(/\D/g, '')
+                              const risk = riskScores[cleanPhone]?.data
+                              if (risk?.riskLevel === 'HIGH') {
+                                return (
+                                  <span className="text-[10px] font-bold text-red-600 block leading-tight">
+                                    ⚠️ High return probability!
+                                  </span>
+                                )
+                              }
+                              return null
+                            })()}
+                            <button
+                              onClick={() => onDispatchSteadfast(order.id)}
+                              disabled={actionLoading === order.id + '-steadfast'}
+                              className="flex items-center gap-2 bg-[#FFF9E8] hover:bg-[#FFF3CE] text-[#B18512] border border-[#F4C542]/50 text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition-all shadow-2xs cursor-pointer"
+                            >
+                              <Truck size={15} />
+                              <span>
+                                {actionLoading === order.id + '-steadfast'
+                                  ? 'Booking...'
+                                  : 'Send to Steadfast'}
+                              </span>
+                            </button>
+                          </div>
                         )}
                       </td>
 
@@ -632,6 +779,117 @@ export default function OrdersManager({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELIVERY RISK CHECK DETAILS MODAL */}
+      {selectedRiskModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-soft-border space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-soft-border pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                  selectedRiskModal.riskLevel === 'HIGH'
+                    ? 'bg-red-100 text-red-600'
+                    : selectedRiskModal.riskLevel === 'MEDIUM'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-emerald-100 text-[#0F766E]'
+                }`}>
+                  <ShieldAlert size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-charcoal">Delivery Risk Assessment</h3>
+                  <p className="font-mono text-xs text-secondary-text">{selectedRiskModal.phone}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedRiskModal(null)}
+                className="h-9 w-9 rounded-xl bg-soft-bg hover:bg-zinc-200 inline-flex items-center justify-center text-charcoal cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Risk Status Pill */}
+            <div className={`p-4 rounded-2xl border ${
+              selectedRiskModal.riskLevel === 'HIGH'
+                ? 'bg-red-50 border-red-200 text-red-900'
+                : selectedRiskModal.riskLevel === 'MEDIUM'
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-sm uppercase tracking-wide">
+                  {selectedRiskModal.riskLevel === 'HIGH' ? '⚠️ High Risk Customer' : selectedRiskModal.riskLevel === 'MEDIUM' ? '⚠️ Moderate Risk' : '✓ Trusted Buyer'}
+                </span>
+                <span className="text-xs font-mono font-bold bg-white/80 px-2.5 py-1 rounded-md">
+                  {selectedRiskModal.riskLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-soft-bg border border-soft-border rounded-xl p-3">
+                <span className="text-[11px] font-bold text-secondary-text uppercase block">Delivered Rate</span>
+                <span className="font-sans font-extrabold text-xl text-emerald-700 block mt-1">
+                  {selectedRiskModal.deliveryRatio}%
+                </span>
+              </div>
+              <div className="bg-soft-bg border border-soft-border rounded-xl p-3">
+                <span className="text-[11px] font-bold text-secondary-text uppercase block">Return Rate</span>
+                <span className="font-sans font-extrabold text-xl text-red-600 block mt-1">
+                  {selectedRiskModal.cancellationRatio}%
+                </span>
+              </div>
+              <div className="bg-soft-bg border border-soft-border rounded-xl p-3">
+                <span className="text-[11px] font-bold text-secondary-text uppercase block">Fraud Reports</span>
+                <span className="font-sans font-extrabold text-xl text-charcoal block mt-1">
+                  {selectedRiskModal.totalReports}
+                </span>
+              </div>
+            </div>
+
+            {/* Fraud Categories Breakdown */}
+            {selectedRiskModal.fraudCategories && Object.keys(selectedRiskModal.fraudCategories).length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-charcoal uppercase tracking-wider block">
+                  Reported Violations By Merchants:
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {Object.entries(selectedRiskModal.fraudCategories).map(([key, count]) => (
+                    <div key={key} className="bg-red-50/70 border border-red-100 rounded-lg px-3 py-1.5 flex items-center justify-between">
+                      <span className="capitalize text-red-900 font-medium">
+                        {key.replace(/_/g, ' ')}
+                      </span>
+                      <span className="font-mono font-bold text-red-700">×{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendation Box */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-3.5 text-xs text-charcoal space-y-1">
+              <span className="font-bold block">💡 Dispatch Recommendation:</span>
+              <p className="text-secondary-text">
+                {selectedRiskModal.riskLevel === 'HIGH'
+                  ? 'We strongly recommend calling this customer to verify the order and taking delivery charges (৳150) in advance via bKash before dispatching.'
+                  : selectedRiskModal.riskLevel === 'MEDIUM'
+                  ? 'Please confirm with the customer via phone or WhatsApp before booking.'
+                  : 'Customer delivery history is reliable. Safe to proceed with Cash on Delivery (COD).'}
+              </p>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedRiskModal(null)}
+              className="w-full bg-charcoal hover:bg-black text-white font-bold py-3 rounded-xl transition-all cursor-pointer text-sm uppercase tracking-wider"
+            >
+              Close Assessment
+            </button>
           </div>
         </div>
       )}

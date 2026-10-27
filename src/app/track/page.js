@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Phone, CreditCard, Clock, CheckCircle2, Truck, Check, AlertCircle } from 'lucide-react'
+import { Search, MapPin, Phone, CreditCard, Clock, CheckCircle2, Truck, Check, AlertCircle, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function TrackOrderPage() {
@@ -179,9 +179,16 @@ export default function TrackOrderPage() {
                             {order.status}
                           </span>
                           {order.steadfast_tracking_code && (
-                            <p className="text-[10px] text-secondary-text font-mono">
-                              Consignment: <strong className="text-charcoal dark:text-white">{order.steadfast_tracking_code}</strong>
-                            </p>
+                            <a
+                              href={`https://steadfast.com.bd/tracking?tracking_code=${encodeURIComponent(order.steadfast_tracking_code)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] text-blue-600 hover:text-blue-800 underline font-mono flex items-center gap-1 mt-1 font-bold"
+                              title="Track live on Steadfast Courier"
+                            >
+                              <span>Steadfast Tracking: <strong>{order.steadfast_tracking_code}</strong></span>
+                              <ExternalLink size={11} />
+                            </a>
                           )}
                         </div>
                       </div>

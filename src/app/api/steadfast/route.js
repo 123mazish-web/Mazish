@@ -1,18 +1,30 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://cacujmdrqugzeocqzoun.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+)
 
 export async function POST(request) {
   try {
+    // 1. Verify Admin Authentication Token
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
+
+    if (token !== 'mazish-secure-admin-token') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { orderId, isDemo } = await request.json()
 
     if (!orderId) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 })
     }
 
-    // 1. Fetch order details
+    // 2. Fetch order details from Supabase
     let order = null
     if (isDemo) {
-      // Mock order data for client-side demo orders to avoid referencing localStorage on the server
       order = {
         id: orderId,
         customer_name: 'Demo Customer',
@@ -23,7 +35,7 @@ export async function POST(request) {
         items: []
       }
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('orders')
         .select('*')
         .eq('id', orderId)
@@ -37,55 +49,61 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
-    // 2. Prepare Steadfast payload
+    // Normalize phone number for Steadfast
+    let cleanedPhone = (order.phone || '').replace(/\D/g, '')
+    if (cleanedPhone.startsWith('880')) {
+      cleanedPhone = cleanedPhone.slice(2)
+    } else if (cleanedPhone.length === 10 && !cleanedPhone.startsWith('0')) {
+      cleanedPhone = '0' + cleanedPhone
+    }
+
+    // 3. Prepare Steadfast payload
     const apiKey = process.env.STEADFAST_API_KEY
     const secretKey = process.env.STEADFAST_SECRET_KEY
-
-    // If API keys are missing/placeholder, do a sandbox mock dispatch
     const isMock = !apiKey || apiKey.includes('your_') || !secretKey || secretKey.includes('your_')
 
     let consignmentId = `SF-${Math.floor(100000 + Math.random() * 900000)}`
-    let trackingCode = `STEADFAST-${order.phone.slice(-4)}-${Math.floor(1000 + Math.random() * 9000)}`
+    let trackingCode = `STEADFAST-${cleanedPhone.slice(-4)}-${Math.floor(1000 + Math.random() * 9000)}`
 
     if (!isMock && !isDemo) {
       try {
-        const response = await fetch('https://portal.steadfast.com.bd/api/v1/create_order', {
+        const response = await fetch('https://portal.packzy.com/api/v1/create_order', {
           method: 'POST',
           headers: {
-            'API-KEY': apiKey,
-            'SECRET-KEY': secretKey,
+            'Api-Key': apiKey,
+            'Secret-Key': secretKey,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             invoice: order.id,
-            recipient_name: order.customer_name,
-            recipient_phone: order.phone,
-            recipient_address: order.delivery_address,
-            cod_amount: order.payment_method === 'COD' ? order.total_amount : 0,
-            note: `Mazish Order Items: ${order.items?.map(i => `${i.name} x${i.quantity}`).join(', ')}`
+            recipient_name: order.customer_name || 'Customer',
+            recipient_phone: cleanedPhone,
+            recipient_address: order.delivery_address || 'Address pending',
+            cod_amount: order.payment_method === 'COD' ? parseFloat(order.total_amount || 0) : 0,
+            note: (order.note || '').trim()
           })
         })
 
         const resData = await response.json()
-        if (resData.status === 200) {
-          consignmentId = resData.consignment?.id || consignmentId
-          trackingCode = resData.consignment?.tracking_code || trackingCode
+        if (resData.status === 200 && resData.consignment) {
+          consignmentId = String(resData.consignment.consignment_id || resData.consignment.id || consignmentId)
+          trackingCode = String(resData.consignment.tracking_code || trackingCode)
         } else {
-          console.warn("Steadfast API returned non-200:", resData)
+          console.warn('Steadfast API returned error:', resData)
           return NextResponse.json({
-            error: resData.message || 'Steadfast integration failed',
+            error: resData.message || resData.errors?.[0] || 'Steadfast booking failed',
             details: resData
           }, { status: 400 })
         }
       } catch (err) {
-        console.error("Failed to connect to Steadfast:", err)
+        console.error('Failed to connect to Steadfast:', err)
         return NextResponse.json({ error: 'Steadfast Courier API Connection Error' }, { status: 500 })
       }
     }
 
-    // 3. Update order in DB if it is a live DB order
+    // 4. Update order in Supabase DB
     if (!isDemo) {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('orders')
         .update({
           status: 'Shipped',
@@ -101,10 +119,12 @@ export async function POST(request) {
       success: true,
       consignmentId,
       trackingCode,
-      message: (isMock || isDemo) ? 'Order mocked as shipped (Sandbox Mode)' : 'Order successfully dispatched via Steadfast Courier'
+      message: (isMock || isDemo)
+        ? 'Order mocked as shipped (Sandbox Mode)'
+        : 'Order successfully dispatched via Steadfast Courier'
     })
   } catch (error) {
-    console.error("API error in Steadfast dispatch:", error)
+    console.error('API error in Steadfast dispatch:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

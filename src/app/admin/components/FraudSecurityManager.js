@@ -23,7 +23,7 @@ export default function FraudSecurityManager({
   onAddBlockedIp,
   onRemoveBlockedIp,
 }) {
-  const [activeSubTab, setActiveSubTab] = useState('phones') // 'phones' | 'ips' | 'audit'
+  const [activeSubTab, setActiveSubTab] = useState('risk-check') // 'risk-check' | 'phones' | 'ips' | 'audit'
 
   // Phone Form
   const [phoneInput, setPhoneInput] = useState('')
@@ -32,6 +32,41 @@ export default function FraudSecurityManager({
   // IP Form
   const [ipInput, setIpInput] = useState('')
   const [ipReason, setIpReason] = useState('Spam checkout bot traffic / automated attacks')
+
+  // Live Steadfast Reputation Inspector State
+  const [inspectorPhone, setInspectorPhone] = useState('')
+  const [inspectorLoading, setInspectorLoading] = useState(false)
+  const [inspectorResult, setInspectorResult] = useState(null)
+  const [inspectorError, setInspectorError] = useState('')
+
+  const handleInspectPhone = async (e) => {
+    e.preventDefault()
+    const clean = inspectorPhone.trim()
+    if (!clean) return
+
+    setInspectorLoading(true)
+    setInspectorResult(null)
+    setInspectorError('')
+
+    try {
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      const res = await fetch(`/api/steadfast/risk-check?phone=${encodeURIComponent(clean)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success) {
+        setInspectorResult(data)
+      } else {
+        setInspectorError(data.error || 'Failed to inspect phone')
+      }
+    } catch (err) {
+      setInspectorError(err.message || 'Connection error')
+    } finally {
+      setInspectorLoading(false)
+    }
+  }
 
   // Handlers
   const handleBlockPhone = (e) => {
@@ -87,7 +122,17 @@ export default function FraudSecurityManager({
         </div>
 
         {/* Sub-tab navigation */}
-        <div className="inline-flex p-1 bg-soft-bg border border-soft-border rounded-xl text-xs font-bold">
+        <div className="inline-flex p-1 bg-soft-bg border border-soft-border rounded-xl text-xs font-bold flex-wrap gap-1">
+          <button
+            onClick={() => setActiveSubTab('risk-check')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeSubTab === 'risk-check'
+                ? 'bg-[#0F766E] text-white shadow-xs'
+                : 'text-secondary-text hover:text-charcoal'
+            }`}
+          >
+            🛡️ Steadfast Risk Check
+          </button>
           <button
             onClick={() => setActiveSubTab('phones')}
             className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
@@ -120,6 +165,123 @@ export default function FraudSecurityManager({
           </button>
         </div>
       </div>
+
+      {/* 0. Live Steadfast Reputation Inspector View */}
+      {activeSubTab === 'risk-check' && (
+        <div className="space-y-6">
+          <div className="bg-white border border-soft-border p-6 rounded-2xl shadow-xs space-y-5">
+            <div>
+              <h3 className="font-luxury text-xl font-bold uppercase tracking-wider text-charcoal flex items-center gap-2">
+                <ShieldAlert size={20} className="text-[#0F766E]" />
+                Steadfast Customer Delivery Risk Inspector
+              </h3>
+              <p className="text-xs text-secondary-text mt-1">
+                Query customer delivery success vs return history across Bangladesh before dispatching high-value orders
+              </p>
+            </div>
+
+            <form onSubmit={handleInspectPhone} className="flex flex-col sm:flex-row gap-3 max-w-xl">
+              <input
+                type="text"
+                required
+                placeholder="Enter customer mobile number (e.g. 017XXXXXXXX)"
+                value={inspectorPhone}
+                onChange={(e) => setInspectorPhone(e.target.value)}
+                className="flex-1 bg-soft-bg border border-soft-border rounded-xl px-4 py-3 text-sm font-bold text-charcoal focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={inspectorLoading}
+                className="bg-[#0F766E] hover:bg-[#0D625C] text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-50 uppercase tracking-wider shrink-0"
+              >
+                {inspectorLoading ? 'Checking...' : 'Inspect Reputation'}
+              </button>
+            </form>
+
+            {inspectorError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-bold p-4 rounded-xl">
+                {inspectorError}
+              </div>
+            )}
+
+            {/* Inspector Result Card */}
+            {inspectorResult && (
+              <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-6 space-y-5 animate-in fade-in">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-zinc-200 pb-4">
+                  <div>
+                    <span className="font-mono text-base font-extrabold text-charcoal block">
+                      Phone: {inspectorResult.phone}
+                    </span>
+                    <span className="text-xs text-secondary-text">
+                      Order Volume: <strong>{inspectorResult.volumeRange}</strong>
+                    </span>
+                  </div>
+                  <span className={`text-xs font-extrabold px-3 py-1.5 rounded-full border ${
+                    inspectorResult.riskLevel === 'HIGH'
+                      ? 'bg-red-100 text-red-800 border-red-300'
+                      : inspectorResult.riskLevel === 'MEDIUM'
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  }`}>
+                    {inspectorResult.riskLabel}
+                  </span>
+                </div>
+
+                {/* KPI Metrics */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                  <div className="bg-white border border-soft-border rounded-xl p-4 shadow-2xs">
+                    <span className="text-xs font-bold text-secondary-text uppercase block">Delivered Rate</span>
+                    <span className="font-sans font-extrabold text-2xl text-emerald-700 block mt-1">
+                      {inspectorResult.deliveryRatio}%
+                    </span>
+                  </div>
+                  <div className="bg-white border border-soft-border rounded-xl p-4 shadow-2xs">
+                    <span className="text-xs font-bold text-secondary-text uppercase block">Return / Cancel Rate</span>
+                    <span className="font-sans font-extrabold text-2xl text-red-600 block mt-1">
+                      {inspectorResult.cancellationRatio}%
+                    </span>
+                  </div>
+                  <div className="bg-white border border-soft-border rounded-xl p-4 shadow-2xs">
+                    <span className="text-xs font-bold text-secondary-text uppercase block">Fraud Reports</span>
+                    <span className="font-sans font-extrabold text-2xl text-charcoal block mt-1">
+                      {inspectorResult.totalReports}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Fraud categories */}
+                {inspectorResult.fraudCategories && Object.keys(inspectorResult.fraudCategories).length > 0 && (
+                  <div className="bg-white border border-soft-border rounded-xl p-4 shadow-2xs space-y-2">
+                    <span className="text-xs font-bold text-charcoal uppercase tracking-wider block">
+                      Specific Merchant Reports:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                      {Object.entries(inspectorResult.fraudCategories).map(([cat, count]) => (
+                        <div key={cat} className="bg-red-50 border border-red-200/70 rounded-lg px-3 py-1.5 flex justify-between">
+                          <span className="capitalize text-red-900 font-medium">{cat.replace(/_/g, ' ')}</span>
+                          <span className="font-mono font-bold text-red-700">×{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action guidance */}
+                <div className="bg-[#FFF9E8] border border-[#F4C542]/60 rounded-xl p-4 text-xs space-y-1">
+                  <span className="font-bold text-[#9E7308] block">Recommendation:</span>
+                  <p className="text-[#9E7308]/90">
+                    {inspectorResult.riskLevel === 'HIGH'
+                      ? 'High risk buyer with frequent return history. Recommend requiring delivery fee in advance via bKash.'
+                      : inspectorResult.riskLevel === 'MEDIUM'
+                      ? 'Moderate risk. Confirm customer availability via phone before booking.'
+                      : 'Low risk. Clean delivery track record. Safe to dispatch via COD.'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 1. Phone Blacklist View */}
       {activeSubTab === 'phones' && (

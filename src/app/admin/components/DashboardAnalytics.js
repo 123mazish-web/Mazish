@@ -21,8 +21,10 @@ export default function DashboardAnalytics({
   orders = [],
   products = [],
   expenses = [],
+  steadfastBalance = null,
+  balanceLoading = false,
+  onRefreshBalance,
   onReload,
-  steadfastBalance = 13185,
 }) {
   const [timeFilter, setTimeFilter] = useState('all')
 
@@ -229,12 +231,26 @@ export default function DashboardAnalytics({
           Admin Dashboard
         </h1>
 
-        <div className="flex items-center gap-3">
-          {/* Steadfast Balance Pill */}
-          <div className="flex items-center gap-2.5 bg-[#EAF7EE] border border-[#A6E6BD] px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold text-[#0F766E] shadow-xs">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse"></span>
-            <span>Steadfast Balance: ৳{Number(steadfastBalance).toLocaleString()}</span>
-          </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Live Steadfast Courier Wallet Balance */}
+          {steadfastBalance !== null && (
+            <div className="flex items-center gap-2.5 bg-[#EAF7EE] border border-[#A6E6BD] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[#0F766E] shadow-xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span>
+                Steadfast Balance: <strong className="font-mono text-emerald-950 font-extrabold text-sm sm:text-base">৳{steadfastBalance.toLocaleString()}</strong>
+              </span>
+              {onRefreshBalance && (
+                <button
+                  onClick={onRefreshBalance}
+                  disabled={balanceLoading}
+                  className="hover:text-emerald-950 p-1 rounded-md transition-colors disabled:opacity-50 cursor-pointer ml-1"
+                  title="Refresh live Steadfast balance"
+                >
+                  <RefreshCw size={13} className={balanceLoading ? 'animate-spin' : ''} />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Time Filter Select */}
           <div className="relative">
