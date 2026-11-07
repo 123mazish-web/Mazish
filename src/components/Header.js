@@ -15,11 +15,14 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const frame = requestAnimationFrame(() => setMounted(true))
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev <= 1 ? 1500 : prev - 1))
     }, 1000)
-    return () => clearInterval(timer)
+    return () => {
+      cancelAnimationFrame(frame)
+      clearInterval(timer)
+    }
   }, [])
 
   const formatTime = (seconds) => {

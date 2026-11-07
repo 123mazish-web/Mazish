@@ -148,3 +148,51 @@ export const DEFAULT_PRODUCTS = [
   }
 ]
 
+export const DEFAULT_DESCRIPTION_POINTS = [
+  'Glass + Box',
+  '100% Cash On Delivery',
+  'Imported Products',
+  'High Quality Products'
+]
+
+export function parseDescriptionTo4Points(description) {
+  if (!description || typeof description !== 'string') {
+    return [...DEFAULT_DESCRIPTION_POINTS]
+  }
+
+  // 1. Split by newline or bullet character
+  let lines = description
+    .split(/\r?\n|•/)
+    .map(line => line.replace(/^[-*•\s]+/, '').trim())
+    .filter(line => line.length > 0)
+
+  // 2. If it's a single long sentence / paragraph without line breaks, split by sentence (. followed by space)
+  if (lines.length === 1 && lines[0].includes('.')) {
+    const sentences = lines[0]
+      .split(/\.(?:\s+|$)/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+    if (sentences.length > 1) {
+      lines = sentences
+    }
+  }
+
+  // Build exactly 4 points, falling back to default points if any are missing
+  return [
+    lines[0] || DEFAULT_DESCRIPTION_POINTS[0],
+    lines[1] || DEFAULT_DESCRIPTION_POINTS[1],
+    lines[2] || DEFAULT_DESCRIPTION_POINTS[2],
+    lines[3] || DEFAULT_DESCRIPTION_POINTS[3],
+  ]
+}
+
+export function format4PointsToDescription(points) {
+  if (!Array.isArray(points)) return DEFAULT_DESCRIPTION_POINTS.map(p => `• ${p}`).join('\n')
+  const p1 = points[0]?.trim() || DEFAULT_DESCRIPTION_POINTS[0]
+  const p2 = points[1]?.trim() || DEFAULT_DESCRIPTION_POINTS[1]
+  const p3 = points[2]?.trim() || DEFAULT_DESCRIPTION_POINTS[2]
+  const p4 = points[3]?.trim() || DEFAULT_DESCRIPTION_POINTS[3]
+  return `• ${p1}\n• ${p2}\n• ${p3}\n• ${p4}`
+}
+
+

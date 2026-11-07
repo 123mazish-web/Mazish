@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, ShoppingBag, Truck, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getProductById, getProducts } from '@/lib/db'
 import { useCart } from '@/context/CartContext'
-import { DEFAULT_PRODUCTS } from '@/lib/products'
+import { DEFAULT_PRODUCTS, parseDescriptionTo4Points } from '@/lib/products'
 
 export default function ProductPage({ params }) {
   const unwrappedParams = params && typeof params.then === 'function' ? use(params) : params
@@ -216,22 +216,12 @@ export default function ProductPage({ params }) {
             <div className="space-y-2">
               <h3 className="text-charcoal text-[13px] font-bold uppercase tracking-wider">Description</h3>
               <ul className="space-y-2.5 pt-1">
-                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
-                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
-                  <span>Glass + Box</span>
-                </li>
-                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
-                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
-                  <span>100% Cash On Delivery</span>
-                </li>
-                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
-                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
-                  <span>Imported Products</span>
-                </li>
-                <li className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
-                  <span className="h-2 w-2 rounded-full bg-charcoal"></span>
-                  <span>High Quality Products</span>
-                </li>
+                {parseDescriptionTo4Points(product?.description).map((point, index) => (
+                  <li key={index} className="flex items-center gap-2.5 text-charcoal/95 text-[17px] font-normal">
+                    <span className="h-2 w-2 rounded-full bg-charcoal shrink-0"></span>
+                    <span>{point}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 

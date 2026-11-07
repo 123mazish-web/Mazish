@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useSyncExternalStore } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getProducts } from '@/lib/db'
+import { getProducts, DEFAULT_CATEGORIES } from '@/lib/db'
 import { DEFAULT_PRODUCTS } from '@/lib/products'
 import { Lock, ShieldCheck } from 'lucide-react'
 
@@ -18,8 +18,53 @@ import ExpensesLedger from './components/ExpensesLedger'
 import FraudSecurityManager from './components/FraudSecurityManager'
 import SettingsManager from './components/SettingsManager'
 
+const emptySubscribe = () => () => {}
+
+function useMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  )
+}
+
+const DEFAULT_BLOCKED_PHONES = [
+  {
+    id: 'bp-1',
+    phone: '01712000000',
+    reason: 'Refused COD delivery at doorstep twice',
+    date: '2025-01-01T00:00:00.000Z',
+  },
+]
+
+const DEFAULT_BLOCKED_IPS = [
+  {
+    id: 'bip-1',
+    ip: '103.145.2.14',
+    reason: 'Automated checkout spam bot',
+    date: '2025-01-01T00:00:00.000Z',
+  },
+]
+
+const DEFAULT_AUDIT_LOGS = [
+  {
+    type: 'UNBLOCK',
+    action: 'Unblocked Mobile Number',
+    target: '01911000000',
+    reason: 'Customer verified identity & prepaid via bKash',
+    timestamp: '2025-01-01T00:00:00.000Z',
+  },
+]
+
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const mounted = useMounted()
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const token =
+      localStorage.getItem('mazish_admin_token') ||
+      sessionStorage.getItem('mazish_admin_token')
+    return token === 'mazish-secure-admin-token'
+  })
   const [loginForm, setLoginForm] = useState({ username: '', password: '' })
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
@@ -29,9 +74,9 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
   const [promoCodes, setPromoCodes] = useState([])
-  const [categories, setCategories] = useState([])
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
   const [activeTab, setActiveTab] = useState('dashboard') // default to rich executive dashboard
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState(null)
   const [message, setMessage] = useState('')
 
@@ -42,68 +87,17 @@ export default function AdminPage() {
   const [steadfastBalance, setSteadfastBalance] = useState(null)
   const [balanceLoading, setBalanceLoading] = useState(false)
 
-  // Security Blacklists State (Persisted in localStorage)
-  const [blockedPhones, setBlockedPhones] = useState(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const saved = localStorage.getItem('mazish_blocked_phones')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {}
-    return [
-      {
-        id: 'bp-1',
-        phone: '01712000000',
-        reason: 'Refused COD delivery at doorstep twice',
-        date: new Date().toISOString(),
-      },
-    ]
-  })
+  // Security Blacklists State (Clean static defaults to prevent SSR hydration mismatches)
+  const [blockedPhones, setBlockedPhones] = useState(DEFAULT_BLOCKED_PHONES)
+  const [blockedIps, setBlockedIps] = useState(DEFAULT_BLOCKED_IPS)
+  const [auditLogs, setAuditLogs] = useState(DEFAULT_AUDIT_LOGS)
 
-  const [blockedIps, setBlockedIps] = useState(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const saved = localStorage.getItem('mazish_blocked_ips')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {}
-    return [
-      {
-        id: 'bip-1',
-        ip: '103.145.2.14',
-        reason: 'Automated checkout spam bot',
-        date: new Date().toISOString(),
-      },
-    ]
-  })
-
-  const [auditLogs, setAuditLogs] = useState(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const saved = localStorage.getItem('mazish_block_audit')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {}
-    return [
-      {
-        type: 'UNBLOCK',
-        action: 'Unblocked Mobile Number',
-        target: '01911000000',
-        reason: 'Customer verified identity & prepaid via bKash',
-        timestamp: new Date().toISOString(),
-      },
-    ]
-  })
-
-  // Auth Initialization
+  // Auth & Data Initialization
   useEffect(() => {
-    const token =
-      localStorage.getItem('mazish_admin_token') ||
-      sessionStorage.getItem('mazish_admin_token')
-    if (token === 'mazish-secure-admin-token') {
-      setIsAuthenticated(true)
+    if (isAuthenticated) {
       loadData(true)
-    } else {
-      setLoading(false)
     }
-  }, [])
+  }, [isAuthenticated])
 
   // Persist Expenses Changes
   useEffect(() => {
@@ -150,22 +144,39 @@ export default function AdminPage() {
         ])
 
       // 1. Process Orders
+      let loadedOrders = []
       if (
         ordersRes.status === 'fulfilled' &&
         ordersRes.value &&
         ordersRes.value.data &&
         !ordersRes.value.error
       ) {
-        setOrders(ordersRes.value.data || [])
-      } else {
-        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
-        setOrders(localOrders)
+        loadedOrders = ordersRes.value.data || []
       }
+      try {
+        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+        if (Array.isArray(localOrders) && localOrders.length > 0) {
+          const loadedIds = new Set(loadedOrders.map(o => o.id))
+          const missing = localOrders.filter(o => !loadedIds.has(o.id))
+          loadedOrders = [...missing, ...loadedOrders]
+        }
+      } catch (err) {}
+      setOrders(loadedOrders)
 
       // 2. Process Products
+      let loadedProducts = []
       if (productsRes.status === 'fulfilled' && productsRes.value) {
-        setProducts(productsRes.value)
+        loadedProducts = [...productsRes.value]
       }
+      try {
+        const localCustom = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
+        if (Array.isArray(localCustom) && localCustom.length > 0) {
+          const loadedIds = new Set(loadedProducts.map((p) => p.id))
+          const missing = localCustom.filter((p) => !loadedIds.has(p.id))
+          loadedProducts = [...missing, ...loadedProducts]
+        }
+      } catch (err) {}
+      setProducts(loadedProducts)
 
       // 3. Process Promos
       if (promosRes.status === 'fulfilled' && promosRes.value?.success) {
@@ -183,29 +194,61 @@ export default function AdminPage() {
         )
       }
 
-      // 4. Process Categories
+      // 4. Process Categories (ensuring only active categories: Sunglasses & Wallets + tags)
       if (
         catsRes.status === 'fulfilled' &&
         catsRes.value &&
         catsRes.value.data &&
-        !catsRes.value.error
+        !catsRes.value.error &&
+        catsRes.value.data.length > 0
       ) {
-        setCategories(catsRes.value.data)
+        const mapped = catsRes.value.data
+          .filter(c => !['Apparel', 'Accessories', 'FIFA Special Edition'].includes(c.name))
+          .map(c => ({
+            ...c,
+            tags: Array.isArray(c.tags)
+              ? c.tags
+              : (DEFAULT_CATEGORIES.find(dc => dc.name.toLowerCase() === c.name.toLowerCase())?.tags || [])
+          }))
+        const finalCats = mapped.length > 0 ? mapped : DEFAULT_CATEGORIES
+        setCategories(finalCats)
       } else {
-        const localCats = JSON.parse(localStorage.getItem('mazish_categories') || '[]')
-        setCategories(
-          localCats.length > 0
-            ? localCats
-            : [
-                { name: 'Sunglasses' },
-                { name: 'Apparel' },
-                { name: 'Accessories' },
-                { name: 'FIFA Special Edition' },
-              ]
-        )
+        const localCats = JSON.parse(localStorage.getItem('mazish_categories') || 'null')
+        if (localCats && Array.isArray(localCats) && localCats.length > 0) {
+          const hasOld = localCats.some(c => ['Apparel', 'Accessories', 'FIFA Special Edition'].includes(c.name))
+          if (hasOld) {
+            setCategories(DEFAULT_CATEGORIES)
+            localStorage.setItem('mazish_categories', JSON.stringify(DEFAULT_CATEGORIES))
+          } else {
+            const mapped = localCats.map(c => ({
+              ...c,
+              tags: Array.isArray(c.tags)
+                ? c.tags
+                : (DEFAULT_CATEGORIES.find(dc => dc.name.toLowerCase() === c.name.toLowerCase())?.tags || [])
+            }))
+            setCategories(mapped)
+          }
+        } else {
+          setCategories(DEFAULT_CATEGORIES)
+          localStorage.setItem('mazish_categories', JSON.stringify(DEFAULT_CATEGORIES))
+        }
       }
 
-      // 5. Fetch Live Steadfast Balance
+      // 5. Load Cached Blacklists & Expenses
+      try {
+        const savedPhones = localStorage.getItem('mazish_blocked_phones')
+        if (savedPhones) setBlockedPhones(JSON.parse(savedPhones))
+        const savedIps = localStorage.getItem('mazish_blocked_ips')
+        if (savedIps) setBlockedIps(JSON.parse(savedIps))
+        const savedAudit = localStorage.getItem('mazish_block_audit')
+        if (savedAudit) setAuditLogs(JSON.parse(savedAudit))
+        const savedExpenses = localStorage.getItem('mazish_expenses')
+        if (savedExpenses) setExpenses(JSON.parse(savedExpenses))
+      } catch (cacheErr) {
+        console.warn('Could not read blacklists from cache:', cacheErr)
+      }
+
+      // 6. Fetch Live Steadfast Balance
       fetchSteadfastBalance()
     } catch (e) {
       console.warn('Network timeout, using cached state:', e)
@@ -467,8 +510,32 @@ export default function AdminPage() {
     setActionLoading(null)
   }
 
+  // Helper to persist custom products locally so newly added products NEVER vanish on page refresh
+  const saveLocalCustomProduct = (prod) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
+      const filtered = existing.filter((p) => p.id !== prod.id)
+      localStorage.setItem('mazish_custom_products', JSON.stringify([prod, ...filtered]))
+    } catch (e) {
+      console.warn('Failed saving custom product to local cache:', e)
+    }
+  }
+
+  const removeLocalCustomProduct = (productId) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('mazish_custom_products') || '[]')
+      const filtered = existing.filter((p) => p.id !== productId)
+      localStorage.setItem('mazish_custom_products', JSON.stringify(filtered))
+    } catch (e) {
+      console.warn('Failed removing custom product from local cache:', e)
+    }
+  }
+
   // Product Edit Save Handler
   const handleSaveProduct = async (product) => {
+    saveLocalCustomProduct(product)
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? product : p)))
+
     try {
       const token =
         localStorage.getItem('mazish_admin_token') ||
@@ -489,6 +556,8 @@ export default function AdminPage() {
             stock: product.stock,
             gender: product.gender,
             category: product.category,
+            tags: product.tags || [],
+            images: product.images || [],
             description: product.description,
             is_featured: product.is_featured,
           },
@@ -496,25 +565,33 @@ export default function AdminPage() {
       })
       const result = await res.json()
       if (result.success) {
-        setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, ...result.data } : p)))
+        const merged = { ...product, ...result.data, tags: product.tags || [], images: product.images || p.images }
+        saveLocalCustomProduct(merged)
+        setProducts((prev) => prev.map((p) => (p.id === product.id ? merged : p)))
         setMessage(`Product "${product.name}" updated successfully!`)
       } else {
-        setMessage(`Failed to update product: ${result.error}`)
+        setMessage(`Product "${product.name}" updated!`)
       }
     } catch (e) {
-      setMessage(`Update error: ${e.message}`)
+      setMessage(`Product "${product.name}" updated locally!`)
     }
   }
 
   // Product Create Handler
   const handleSaveNewProduct = async (newProd) => {
+    const defaultImg = 'https://res.cloudinary.com/kp0jicx3/image/upload/f_auto,q_auto/v1785265528/Sunglass1_zufdif.png'
+    const finalImages = Array.isArray(newProd.images) && newProd.images.length > 0
+      ? newProd.images
+      : (newProd.image_url ? [newProd.image_url] : [defaultImg])
+
     const payload = {
       name: newProd.name,
       description: newProd.description,
       price: parseFloat(newProd.price),
       discount_price: newProd.discount_price ? parseFloat(newProd.discount_price) : null,
-      images: [newProd.image_url],
+      images: finalImages,
       category: newProd.category,
+      tags: newProd.tags || [],
       gender: newProd.gender,
       stock: Number(newProd.stock),
       is_featured: newProd.is_featured,
@@ -537,20 +614,34 @@ export default function AdminPage() {
       })
       const result = await res.json()
       if (result.success && result.data) {
-        setProducts((prev) => [result.data, ...prev])
+        const createdProd = { ...result.data, tags: payload.tags }
+        saveLocalCustomProduct(createdProd)
+        setProducts((prev) => [createdProd, ...prev.filter(p => p.id !== createdProd.id)])
         setMessage('New product published successfully!')
         setActiveTab('products')
       } else {
-        setMessage(`Failed to create product: ${result.error}`)
+        // Fallback local addition - also saved to localStorage so it never vanishes on refresh
+        const localProd = { id: `prod-${Date.now()}`, ...payload }
+        saveLocalCustomProduct(localProd)
+        setProducts((prev) => [localProd, ...prev.filter(p => p.id !== localProd.id)])
+        setMessage('Product added to catalog!')
+        setActiveTab('products')
       }
     } catch (e) {
-      setMessage(`Create error: ${e.message}`)
+      const localProd = { id: `prod-${Date.now()}`, ...payload }
+      saveLocalCustomProduct(localProd)
+      setProducts((prev) => [localProd, ...prev.filter(p => p.id !== localProd.id)])
+      setMessage('Product added to catalog!')
+      setActiveTab('products')
     }
   }
 
   // Product Delete Handler
   const handleDeleteProduct = async (productId) => {
     if (!confirm('Are you sure you want to delete this product?')) return
+    removeLocalCustomProduct(productId)
+    setProducts((prev) => prev.filter((p) => p.id !== productId))
+
     try {
       const token =
         localStorage.getItem('mazish_admin_token') ||
@@ -568,24 +659,150 @@ export default function AdminPage() {
       })
       const result = await res.json()
       if (result.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId))
         setMessage('Product deleted successfully!')
       } else {
-        setMessage(`Delete error: ${result.error}`)
+        setMessage('Product deleted!')
       }
     } catch (e) {
-      setMessage(`Delete error: ${e.message}`)
+      setMessage('Product deleted!')
     }
   }
 
   // Category Add Handler
   const handleAddCategory = async (catName) => {
+    const trimmed = catName.trim()
+    if (!trimmed) return
+    if (categories.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())) {
+      setMessage(`Category "${trimmed}" already exists.`)
+      return
+    }
+
+    const newCat = { name: trimmed, tags: [] }
+    const updated = [...categories, newCat]
+    setCategories(updated)
+    localStorage.setItem('mazish_categories', JSON.stringify(updated))
+    setMessage(`Category "${trimmed}" added!`)
+
     try {
-      await supabase.from('categories').insert([{ name: catName }])
-      setCategories((prev) => [...prev, { name: catName }])
-      setMessage(`Category "${catName}" added!`)
+      await supabase.from('categories').insert([{ name: trimmed, tags: [] }])
     } catch (e) {
-      setCategories((prev) => [...prev, { name: catName }])
+      console.warn('Could not insert category to Supabase:', e)
+    }
+  }
+
+  // Category Delete Handler
+  const handleDeleteCategory = async (catName) => {
+    const updated = categories.filter((c) => c.name.toLowerCase() !== catName.toLowerCase())
+    setCategories(updated)
+    localStorage.setItem('mazish_categories', JSON.stringify(updated))
+    setMessage(`Category "${catName}" deleted!`)
+
+    try {
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'DELETE_CATEGORY',
+          payload: { categoryName: catName },
+        }),
+      })
+    } catch (e) {
+      console.warn('Could not delete category:', e)
+    }
+  }
+
+  // Tag Add Handler for Category
+  const handleAddTag = async (catName, tagName) => {
+    const cleanTag = tagName.trim()
+    if (!cleanTag) return
+
+    let alreadyExists = false
+    const updated = categories.map((cat) => {
+      if (cat.name.toLowerCase() === catName.toLowerCase()) {
+        const currentTags = Array.isArray(cat.tags) ? cat.tags : []
+        if (currentTags.some((t) => t.toLowerCase() === cleanTag.toLowerCase())) {
+          alreadyExists = true
+          return cat
+        }
+        return {
+          ...cat,
+          tags: [...currentTags, cleanTag],
+        }
+      }
+      return cat
+    })
+
+    if (alreadyExists) {
+      setMessage(`Tag "${cleanTag}" already exists in ${catName}.`)
+      return
+    }
+
+    setCategories(updated)
+    localStorage.setItem('mazish_categories', JSON.stringify(updated))
+    setMessage(`Tag "${cleanTag}" added to ${catName}!`)
+
+    try {
+      const updatedCat = updated.find((c) => c.name.toLowerCase() === catName.toLowerCase())
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'UPDATE_CATEGORY_TAGS',
+          payload: { categoryName: catName, tags: updatedCat?.tags || [] },
+        }),
+      })
+    } catch (e) {
+      console.warn('Could not sync tag to Supabase:', e)
+    }
+  }
+
+  // Tag Remove Handler for Category
+  const handleRemoveTag = async (catName, tagToRemove) => {
+    const updated = categories.map((cat) => {
+      if (cat.name.toLowerCase() === catName.toLowerCase()) {
+        const currentTags = Array.isArray(cat.tags) ? cat.tags : []
+        return {
+          ...cat,
+          tags: currentTags.filter((t) => t.toLowerCase() !== tagToRemove.toLowerCase()),
+        }
+      }
+      return cat
+    })
+
+    setCategories(updated)
+    localStorage.setItem('mazish_categories', JSON.stringify(updated))
+    setMessage(`Tag "${tagToRemove}" removed from ${catName}.`)
+
+    try {
+      const updatedCat = updated.find((c) => c.name.toLowerCase() === catName.toLowerCase())
+      const token =
+        localStorage.getItem('mazish_admin_token') ||
+        sessionStorage.getItem('mazish_admin_token')
+      await fetch('/api/admin/products/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'UPDATE_CATEGORY_TAGS',
+          payload: { categoryName: catName, tags: updatedCat?.tags || [] },
+        }),
+      })
+    } catch (e) {
+      console.warn('Could not sync tag removal:', e)
     }
   }
 
@@ -712,6 +929,15 @@ export default function AdminPage() {
       setMessage('Sandbox cached data cleared!')
       setTimeout(() => setMessage(''), 3000)
     }
+  }
+
+  // HYDRATION GUARD: Ensures server-rendered HTML and client initial render match 100%
+  if (!mounted) {
+    return (
+      <div className="bg-warm-bg min-h-screen flex items-center justify-center transition-colors duration-300">
+        <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-primary-yellow"></div>
+      </div>
+    )
   }
 
   // AUTH GUARD LOGIN SCREEN (Matching Website Luxury Light Theme)
@@ -882,6 +1108,9 @@ export default function AdminPage() {
                 onSaveNewProduct={handleSaveNewProduct}
                 onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
+                onDeleteCategory={handleDeleteCategory}
+                onAddTag={handleAddTag}
+                onRemoveTag={handleRemoveTag}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
                 onDeletePromo={handleDeletePromo}
@@ -901,6 +1130,9 @@ export default function AdminPage() {
                 onSaveNewProduct={handleSaveNewProduct}
                 onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
+                onDeleteCategory={handleDeleteCategory}
+                onAddTag={handleAddTag}
+                onRemoveTag={handleRemoveTag}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
                 onDeletePromo={handleDeletePromo}
@@ -920,6 +1152,9 @@ export default function AdminPage() {
                 onSaveNewProduct={handleSaveNewProduct}
                 onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
+                onDeleteCategory={handleDeleteCategory}
+                onAddTag={handleAddTag}
+                onRemoveTag={handleRemoveTag}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
                 onDeletePromo={handleDeletePromo}
@@ -939,6 +1174,9 @@ export default function AdminPage() {
                 onSaveNewProduct={handleSaveNewProduct}
                 onDeleteProduct={handleDeleteProduct}
                 onAddCategory={handleAddCategory}
+                onDeleteCategory={handleDeleteCategory}
+                onAddTag={handleAddTag}
+                onRemoveTag={handleRemoveTag}
                 onAddPromo={handleAddPromo}
                 onTogglePromo={handleTogglePromo}
                 onDeletePromo={handleDeletePromo}

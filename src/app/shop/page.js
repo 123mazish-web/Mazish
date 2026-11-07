@@ -11,9 +11,7 @@ export default function ShopPage() {
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
   const [categories, setCategories] = useState([
     { name: 'Sunglasses' },
-    { name: 'Apparel' },
-    { name: 'Accessories' },
-    { name: 'FIFA Special Edition' }
+    { name: 'Wallets' }
   ])
   const [loading, setLoading] = useState(false)
   const { addToCart } = useCart()
@@ -201,8 +199,8 @@ export default function ShopPage() {
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="text-secondary-text text-[16px] font-light mt-1.5 line-clamp-2 leading-relaxed">
-                        {product.description}
+                      <p className="text-secondary-text text-[15px] sm:text-[16px] font-light mt-1.5 line-clamp-2 leading-relaxed">
+                        {product.description?.replace(/•\s*/g, '').replace(/\r?\n+/g, ' · ') || product.description}
                       </p>
                     </div>
 

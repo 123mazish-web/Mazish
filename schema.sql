@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     discount_price NUMERIC(10, 2),
     images TEXT[] NOT NULL DEFAULT '{}',
     category TEXT NOT NULL DEFAULT 'Sunglasses',
+    tags TEXT[] NOT NULL DEFAULT '{}',
     gender TEXT NOT NULL DEFAULT 'Unisex', -- 'Men', 'Women', 'Unisex'
     stock INTEGER NOT NULL DEFAULT 10,
     is_featured BOOLEAN NOT NULL DEFAULT false,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- Create Categories Table
 CREATE TABLE IF NOT EXISTS public.categories (
     name TEXT PRIMARY KEY,
+    tags TEXT[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

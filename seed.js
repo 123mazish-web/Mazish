@@ -16,9 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 const DEFAULT_CATEGORIES = [
   { name: "Sunglasses" },
-  { name: "Apparel" },
-  { name: "Accessories" },
-  { name: "FIFA Special Edition" }
+  { name: "Wallets" }
 ]
 
 const DEFAULT_PRODUCTS = [

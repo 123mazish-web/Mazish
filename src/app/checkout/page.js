@@ -195,6 +195,15 @@ export default function CheckoutPage() {
 
       const finalOrder = orderResult.success ? orderResult.data : orderResult.mockOrder
 
+      // Immediately cache order locally so order-confirmation and admin always have access to it
+      try {
+        const localOrders = JSON.parse(localStorage.getItem('mazish_orders') || '[]')
+        const filtered = localOrders.filter(o => o.id !== finalOrder.id)
+        localStorage.setItem('mazish_orders', JSON.stringify([finalOrder, ...filtered]))
+      } catch (cacheErr) {
+        console.warn('Failed to cache order locally:', cacheErr)
+      }
+
       try {
         await fetch('/api/orders/notify', {
           method: 'POST',

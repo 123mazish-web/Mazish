@@ -166,7 +166,7 @@ export default function ExpensesLedger({
               {filteredExpenses.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-secondary-text">
-                    No expense records found. Click "+ Add New Expense" to create one.
+                    No expense records found. Click &quot;+ Add New Expense&quot; to create one.
                   </td>
                 </tr>
               ) : (

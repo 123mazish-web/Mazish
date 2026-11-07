@@ -59,24 +59,38 @@ export async function POST(req) {
         gender: payload.gender || 'Unisex'
       }
 
-      if (payload.description) updateData.description = payload.description
+      if (payload.description !== undefined) updateData.description = payload.description
       if (payload.category) updateData.category = payload.category
+      if (payload.tags !== undefined) updateData.tags = payload.tags
       if (payload.is_featured !== undefined) updateData.is_featured = payload.is_featured
       if (payload.images) updateData.images = payload.images
 
-      const { data, error } = await supabaseAdmin
+      let { data, error } = await supabaseAdmin
         .from('products')
         .update(updateData)
         .eq('id', id)
         .select()
         .single()
 
+      // If 'tags' column doesn't exist in live Supabase schema, retry cleanly without it
+      if (error && error.message?.includes('tags')) {
+        const { tags, ...dataWithoutTags } = updateData
+        const retryRes = await supabaseAdmin
+          .from('products')
+          .update(dataWithoutTags)
+          .eq('id', id)
+          .select()
+          .single()
+        data = retryRes.data ? { ...retryRes.data, tags: payload.tags || [] } : null
+        error = retryRes.error
+      }
+
       if (error) {
         console.error('Supabase update product error:', error)
         return Response.json({ success: false, error: error.message }, { status: 500 })
       }
 
-      return Response.json({ success: true, data })
+      return Response.json({ success: true, data: { ...data, tags: payload.tags || [] } })
     }
 
     // C. CREATE PRODUCT
@@ -97,18 +111,29 @@ export async function POST(req) {
         is_featured: !!payload.is_featured,
       }
 
-      const { data, error } = await supabaseAdmin
+      // Try inserting with tags if provided, but automatically retry without tags if column doesn't exist
+      let { data, error } = await supabaseAdmin
         .from('products')
-        .insert([insertData])
+        .insert([{ ...insertData, ...(payload.tags ? { tags: payload.tags } : {}) }])
         .select()
         .single()
+
+      if (error && error.message?.includes('tags')) {
+        const retryRes = await supabaseAdmin
+          .from('products')
+          .insert([insertData])
+          .select()
+          .single()
+        data = retryRes.data ? { ...retryRes.data, tags: payload.tags || [] } : null
+        error = retryRes.error
+      }
 
       if (error) {
         console.error('Supabase create product error:', error)
         return Response.json({ success: false, error: error.message }, { status: 500 })
       }
 
-      return Response.json({ success: true, data })
+      return Response.json({ success: true, data: { ...data, tags: payload.tags || [] } })
     }
 
     // D. DELETE PRODUCT
@@ -121,6 +146,7 @@ export async function POST(req) {
         .from('products')
         .delete()
         .eq('id', id)
+        .select()
 
       if (error) {
         console.error('Supabase delete product error:', error)
@@ -128,6 +154,47 @@ export async function POST(req) {
       }
 
       return Response.json({ success: true, message: 'Deleted successfully' })
+    }
+
+    // E. UPDATE CATEGORY TAGS
+    if (action === 'UPDATE_CATEGORY_TAGS') {
+      const { categoryName, tags } = payload || {}
+      if (!categoryName) {
+        return Response.json({ success: false, error: 'Category name is required' }, { status: 400 })
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('categories')
+        .update({ tags: tags || [] })
+        .eq('name', categoryName)
+        .select()
+
+      if (error) {
+        console.warn('Supabase update category tags error:', error)
+        return Response.json({ success: false, error: error.message }, { status: 500 })
+      }
+
+      return Response.json({ success: true, data })
+    }
+
+    // F. DELETE CATEGORY
+    if (action === 'DELETE_CATEGORY') {
+      const { categoryName } = payload || {}
+      if (!categoryName) {
+        return Response.json({ success: false, error: 'Category name is required' }, { status: 400 })
+      }
+
+      const { error } = await supabaseAdmin
+        .from('categories')
+        .delete()
+        .eq('name', categoryName)
+
+      if (error) {
+        console.warn('Supabase delete category error:', error)
+        return Response.json({ success: false, error: error.message }, { status: 500 })
+      }
+
+      return Response.json({ success: true, message: 'Category deleted successfully' })
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 })
